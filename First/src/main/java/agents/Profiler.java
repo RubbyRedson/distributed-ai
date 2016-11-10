@@ -1,7 +1,9 @@
 package agents;
 
+import domain.Interests;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
@@ -9,6 +11,8 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import messages.Message;
+import messages.MessageType;
 
 /**
  * Created by victoraxelsson on 2016-11-09.
@@ -25,6 +29,18 @@ public class Profiler extends Agent {
             @Override
             public void action() {
                 searchTours();
+            }
+        });
+
+        addBehaviour(new CyclicBehaviour() {
+            @Override
+            public void action() {
+                ACLMessage msg = myAgent.receive();
+                if (msg != null) {
+                    System.out.println("Profiler received: " + msg.getContent());
+                } else {
+                    block();
+                }
             }
         });
     }
@@ -60,11 +76,12 @@ public class Profiler extends Agent {
         msg.addReceiver(tourGuide);
         msg.setLanguage("English");
         msg.setOntology("Weather-forecast-ontology");
-
         addBehaviour(new TickerBehaviour(this, 2000) {
             @Override
             protected void onTick() {
-                msg.setContent(String.valueOf(Interests.getRandom()));
+                Message message = new Message(MessageType.TourRequestGuide,
+                        String.valueOf(Interests.getRandom()));
+                msg.setContent(message.toString());
                 send(msg);
             }
         });

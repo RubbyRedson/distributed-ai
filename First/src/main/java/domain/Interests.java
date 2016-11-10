@@ -1,4 +1,4 @@
-package agents;
+package domain;
 
 import java.security.SecureRandom;
 
