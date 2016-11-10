@@ -75,7 +75,7 @@ public class Curator extends Agent {
     }
 
     private Message replyInfo(String name) {
-        return new Message(MessageType.InfoRequestReply, collection.get(name).toString());
+        return new Message(MessageType.InfoRequestReply, String.valueOf(collection.get(name)));
     }
 
     private void reply(ACLMessage receivedMsg, Message reply) {

@@ -49,7 +49,7 @@ public class Message {
         String content = separated[1];
         message = new Message(type, content);
         if (separated.length >= 2 && separated[2] != null && !"null".equalsIgnoreCase(separated[2])) {
-            System.out.println("Try to parse AID from " + separated[2]);
+//            System.out.println("Try to parse AID from " + separated[2]);
             StringACLCodec codec = new StringACLCodec(new StringReader(separated[2]), null);
             try {
                 AID aid_rec = codec.decodeAID();
@@ -58,8 +58,8 @@ public class Message {
                 System.out.println("Failed to parse AID from " + separated[2]);
             }
         }
-        System.out.println("---------------------------------\n" +
-                "Parsed message:\n" + message + "\n---------------------------------");
+//        System.out.println("---------------------------------\n" +
+//                "Parsed message:\n" + message + "\n---------------------------------");
         return message;
     }
 }

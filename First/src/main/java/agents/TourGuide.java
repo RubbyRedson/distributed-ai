@@ -93,7 +93,7 @@ public class TourGuide extends Agent {
         msg.addReceiver(parsed.getInterstedParty());
         msg.setLanguage("English");
         msg.setOntology("Weather-forecast-ontology");
-        msg.setContent(parsed.getContent());
+        msg.setContent((new Message(MessageType.TourRequestReplyGuide, parsed.getContent())).toString());
         this.send(msg);
     }
 

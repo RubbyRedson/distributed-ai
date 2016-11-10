@@ -19,6 +19,25 @@ import messages.MessageType;
  */
 public class Profiler extends Agent {
 
+    AID[] curators;
+
+    private void searchCurators() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("curator");
+        template.addServices(sd);
+
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            curators = new AID[result.length];
+            for (int i = 0; i < result.length; ++i) {
+                curators[i] = result[i].getName();
+            }
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void setup() {
         //Ask TourGuide for personalized virtual tours
@@ -29,6 +48,7 @@ public class Profiler extends Agent {
             @Override
             public void action() {
                 searchTours();
+                searchCurators();
             }
         });
 
@@ -37,12 +57,33 @@ public class Profiler extends Agent {
             public void action() {
                 ACLMessage msg = myAgent.receive();
                 if (msg != null) {
-                    System.out.println("Profiler received: " + msg.getContent());
+                    // Message received. Process it
+                    String content = msg.getContent();
+                    Message parsed = Message.fromString(content);
+                    if (parsed != null)
+                        if (MessageType.TourRequestReplyGuide.equals(parsed.getType())) {
+                            System.out.println("Profiler received tour guide reply: " + parsed.getContent());
+                            queryForInfo(parsed.getContent());
+                        } else if (MessageType.InfoRequestReply.equals(parsed.getType())) {
+                            System.out.println("Profiler received info reply: " + parsed.getContent());
+                        }
                 } else {
                     block();
                 }
             }
         });
+    }
+
+    private void queryForInfo(String content) {
+        int startIndex = content.indexOf("name='") + "name='".length();
+        int endIndex = content.indexOf('\'', startIndex);
+        String name = content.substring(startIndex, endIndex);
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        msg.addReceiver(curators[0]);
+        msg.setLanguage("English");
+        msg.setOntology("Weather-forecast-ontology");
+        msg.setContent((new Message(MessageType.InfoRequest, name)).toString());
+        send(msg);
     }
 
     private void searchTours() {
@@ -71,12 +112,12 @@ public class Profiler extends Agent {
     }
 
     private void askForTour(AID tourGuide) {
-        System.out.println(tourGuide);
+//        System.out.println(tourGuide);
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(tourGuide);
         msg.setLanguage("English");
         msg.setOntology("Weather-forecast-ontology");
-        addBehaviour(new TickerBehaviour(this, 2000) {
+        addBehaviour(new TickerBehaviour(this, 5000) {
             @Override
             protected void onTick() {
                 Message message = new Message(MessageType.TourRequestGuide,
