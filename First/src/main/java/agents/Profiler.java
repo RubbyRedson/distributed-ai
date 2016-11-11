@@ -22,6 +22,7 @@ public class Profiler extends Agent {
 
     List<AID> curators = new ArrayList<>();
     List<AID> tourGuides = new ArrayList<>();
+    private static int counter = 1;
 
     private void searchCurators() {
         System.out.println("Searching the curators");
@@ -159,6 +160,7 @@ public class Profiler extends Agent {
             public void action() {
                 Message message = new Message(MessageType.TourRequestGuide,
                         String.valueOf(Interests.getRandom()));
+                msg.setConversationId(String.valueOf(counter++));
                 msg.setContent(message.toString());
                 send(msg);
             }

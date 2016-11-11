@@ -2,7 +2,6 @@ package agents;
 
 import domain.Artifact;
 import domain.Interests;
-import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -10,7 +9,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.proto.states.MsgReceiver;
 import messages.Message;
 import messages.MessageType;
 
@@ -57,7 +55,7 @@ public class Curator extends Agent {
                         if (MessageType.TourRequestCurator.equals(parsed.getType())) {
                             System.out.println("Curator received request from tour guide");
                             String interest = parsed.getContent();
-                            reply(msg, replyTour(interest, parsed.getInterstedParty()));
+                            reply(msg, replyTour(interest));
                         } else if (MessageType.InfoRequest.equals(parsed.getType())) {
                             System.out.println("Curator received request from profiler");
                             String name = parsed.getContent();
@@ -70,9 +68,8 @@ public class Curator extends Agent {
         });
     }
 
-    private Message replyTour(String interest, AID interestedParty) {
+    private Message replyTour(String interest) {
         Message reply = new Message(MessageType.TourRequestReplyCurator, getTour(interest));
-        reply.setInterstedParty(interestedParty);
         return reply;
     }
 
@@ -83,6 +80,8 @@ public class Curator extends Agent {
     private void reply(ACLMessage receivedMsg, Message reply) {
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(receivedMsg.getSender());
+        if (receivedMsg.getConversationId() != null && !receivedMsg.getConversationId().isEmpty())
+            msg.setConversationId(receivedMsg.getConversationId());
         msg.setLanguage("English");
         msg.setOntology("Weather-forecast-ontology");
         msg.setContent(reply.toString());
