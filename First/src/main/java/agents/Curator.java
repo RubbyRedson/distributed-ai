@@ -1,7 +1,7 @@
 package agents;
 
 import domain.Artifact;
-import domain.Interests;
+import domain.Interest;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -22,7 +22,7 @@ public class Curator extends Agent {
     private Map<String, Artifact> collection = new HashMap<>();
 
     private String getTour(String unparsed) {
-        Interests interest = Interests.valueOf(unparsed);
+        Interest interest = Interest.valueOf(unparsed);
         List<Artifact> tour = new ArrayList<>();
 
         for (Artifact a : Artifact.getCollection()) {

@@ -10,12 +10,12 @@ public class Artifact {
 
     private static List<Artifact> collection = new ArrayList<>();
 
-    private Interests type;
+    private Interest type;
     private String name;
     private String author;
     private String date;
 
-    public Artifact(Interests type, String name, String author, String date) {
+    public Artifact(Interest type, String name, String author, String date) {
         this.type = type;
         this.name = name;
         this.author = author;
@@ -34,19 +34,19 @@ public class Artifact {
 
     public static List<Artifact> getCollection() {
         if (collection.isEmpty()) {
-            Artifact painting1 = new Artifact(Interests.Paintings, "Mono Lisp",
+            Artifact painting1 = new Artifact(Interest.Paintings, "Mono Lisp",
                     "Leonardo Da No", "17 Oct 1519");
 
-            Artifact painting2 = new Artifact(Interests.Paintings, "Screamer",
+            Artifact painting2 = new Artifact(Interest.Paintings, "Screamer",
                     "Monk", "27 Feb 1893");
 
-            Artifact cabbage = new Artifact(Interests.Cabbage, "The Great Cabbage",
+            Artifact cabbage = new Artifact(Interest.Cabbage, "The Great Cabbage",
                     "Not the Brightest Server", "2 Nov 2016");
 
-            Artifact chocolate = new Artifact(Interests.Chocolate, "Choco Oompa Loompa",
+            Artifact chocolate = new Artifact(Interest.Chocolate, "Choco Oompa Loompa",
                     "Charlie", "Unknown");
 
-            Artifact flowers = new Artifact(Interests.Flowers, "Tulips",
+            Artifact flowers = new Artifact(Interest.Flowers, "Tulips",
                     "Two Gogh", "Unknown");
 
             collection.add(painting1);
@@ -58,11 +58,11 @@ public class Artifact {
         return collection;
     }
 
-    public Interests getType() {
+    public Interest getType() {
         return type;
     }
 
-    public void setType(Interests type) {
+    public void setType(Interest type) {
         this.type = type;
     }
 

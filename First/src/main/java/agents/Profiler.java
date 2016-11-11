@@ -1,6 +1,6 @@
 package agents;
 
-import domain.Interests;
+import domain.Interest;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.*;
@@ -159,7 +159,7 @@ public class Profiler extends Agent {
             @Override
             public void action() {
                 Message message = new Message(MessageType.TourRequestGuide,
-                        String.valueOf(Interests.getRandom()));
+                        String.valueOf(Interest.getRandom()));
                 msg.setConversationId(String.valueOf(counter++));
                 msg.setContent(message.toString());
                 send(msg);

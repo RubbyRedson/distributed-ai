@@ -18,7 +18,7 @@ import java.util.*;
 Register virtual tour
 Add behaviour to listen for requests from profiler agent (Matching interest)
 Add behaviour that builds virtual tour for profiler (communicate with curator to get list of artifacts, Send receive)
-domain.Interests: Flower, Portraits etc
+domain.Interest: Flower, Portraits etc
 */
 public class TourGuide extends Agent {
 
