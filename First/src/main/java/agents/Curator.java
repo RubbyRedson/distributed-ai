@@ -76,53 +76,34 @@ public class Curator extends Agent {
                 System.out.println("Curator received request from tour guide");
                 String interest = parsed.getContent();
                 reply(msg, replyTour(interest));
+                addBehaviour(this);
             }
         };
 
         addBehaviour(tourRequest);
 
-        addBehaviour(new WakerBehaviour(this, 6000) {
+        MessageTemplate templateInfoRequest = new MessageTemplate(new MessageTemplate.MatchExpression() {
             @Override
-            protected void onWake() {
-                System.out.println("Trying the store");
-                System.out.println(store);
+            public boolean match(ACLMessage msg) {
+                String content = msg.getContent();
+                Message parsed = Message.fromString(content);
+                return parsed != null && MessageType.InfoRequest.equals(parsed.getType());
             }
         });
 
-        //MsgReceiver t = new MsgReceiver(this, template, store, 1000, "msgRes");
-
-
-        //Start listening for requests
-        addBehaviour(new CyclicBehaviour() {
+        MsgReceiver infoRequest = new MsgReceiver(this, templateInfoRequest, MsgReceiver.INFINITE, store, "infoRequests"){
             @Override
-            public void action() {
-
-
-                /*
-                ACLMessage msg = myAgent.receive();
-                if (msg != null) {
-
-                    // Message received. Process it
-                    String content = msg.getContent();
-                    Message parsed = Message.fromString(content);
-                    if (parsed != null)
-                        if (MessageType.TourRequestCurator.equals(parsed.getType())) {
-                            System.out.println("Curator received request from tour guide");
-                            String interest = parsed.getContent();
-                            reply(msg, replyTour(interest));
-                        } else if (MessageType.InfoRequest.equals(parsed.getType())) {
-                            System.out.println("Curator received request from profiler");
-                            String name = parsed.getContent();
-                            reply(msg, replyInfo(name));
-                        }
-                } else {
-                    block();
-                }
-                */
+            protected void handleMessage(ACLMessage msg) {
+                String content = msg.getContent();
+                Message parsed = Message.fromString(content);
+                System.out.println("Curator received request from profiler");
+                String name = parsed.getContent();
+                reply(msg, replyInfo(name));
+                addBehaviour(this);
             }
+        };
 
-        });
-
+        addBehaviour(infoRequest);
     }
 
     private Message replyTour(String interest) {
