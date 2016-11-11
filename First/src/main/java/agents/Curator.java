@@ -1,8 +1,7 @@
 package agents;
 
 import domain.Artifact;
-import domain.Interests;
-import jade.core.AID;
+import domain.Interest;
 import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.domain.DFService;
@@ -26,7 +25,7 @@ public class Curator extends Agent {
     DataStore store;
 
     private String getTour(String unparsed) {
-        Interests interest = Interests.valueOf(unparsed);
+        Interest interest = Interest.valueOf(unparsed);
         List<Artifact> tour = new ArrayList<>();
 
         for (Artifact a : Artifact.getCollection()) {
@@ -62,16 +61,21 @@ public class Curator extends Agent {
 
         MessageTemplate template = new MessageTemplate(new MessageTemplate.MatchExpression() {
             @Override
-            public boolean match(ACLMessage aclMessage) {
-                System.out.println("Testing match");
-                return true;
+            public boolean match(ACLMessage msg) {
+                String content = msg.getContent();
+                Message parsed = Message.fromString(content);
+                return parsed != null && MessageType.TourRequestCurator.equals(parsed.getType());
             }
         });
 
         MsgReceiver tourRequest = new MsgReceiver(this, template, MsgReceiver.INFINITE, store, "tourRequests"){
             @Override
             protected void handleMessage(ACLMessage msg) {
-                System.out.println("Some message");
+                String content = msg.getContent();
+                Message parsed = Message.fromString(content);
+                System.out.println("Curator received request from tour guide");
+                String interest = parsed.getContent();
+                reply(msg, replyTour(interest));
             }
         };
 
@@ -98,8 +102,6 @@ public class Curator extends Agent {
                 ACLMessage msg = myAgent.receive();
                 if (msg != null) {
 
-
-
                     // Message received. Process it
                     String content = msg.getContent();
                     Message parsed = Message.fromString(content);
@@ -107,7 +109,7 @@ public class Curator extends Agent {
                         if (MessageType.TourRequestCurator.equals(parsed.getType())) {
                             System.out.println("Curator received request from tour guide");
                             String interest = parsed.getContent();
-                            reply(msg, replyTour(interest, parsed.getInterstedParty()));
+                            reply(msg, replyTour(interest));
                         } else if (MessageType.InfoRequest.equals(parsed.getType())) {
                             System.out.println("Curator received request from profiler");
                             String name = parsed.getContent();
@@ -123,10 +125,8 @@ public class Curator extends Agent {
 
     }
 
-    private Message replyTour(String interest, AID interestedParty) {
-        Message reply = new Message(MessageType.TourRequestReplyCurator, getTour(interest));
-        reply.setInterstedParty(interestedParty);
-        return reply;
+    private Message replyTour(String interest) {
+        return new Message(MessageType.TourRequestReplyCurator, getTour(interest));
     }
 
     private Message replyInfo(String name) {
@@ -136,8 +136,9 @@ public class Curator extends Agent {
     private void reply(ACLMessage receivedMsg, Message reply) {
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(receivedMsg.getSender());
+        if (receivedMsg.getConversationId() != null && !receivedMsg.getConversationId().isEmpty())
+            msg.setConversationId(receivedMsg.getConversationId());
         msg.setLanguage("English");
-        msg.setOntology("Weather-forecast-ontology");
         msg.setContent(reply.toString());
         this.send(msg);
     }

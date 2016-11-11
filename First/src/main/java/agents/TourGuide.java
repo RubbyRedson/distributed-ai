@@ -1,7 +1,5 @@
 package agents;
 
-import domain.Artifact;
-import domain.Interests;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -13,20 +11,19 @@ import jade.lang.acl.ACLMessage;
 import messages.Message;
 import messages.MessageType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 /*
 [Tour guide agent]
 Register virtual tour
 Add behaviour to listen for requests from profiler agent (Matching interest)
 Add behaviour that builds virtual tour for profiler (communicate with curator to get list of artifacts, Send receive)
-domain.Interests: Flower, Portraits etc
+domain.Interest: Flower, Portraits etc
 */
 public class TourGuide extends Agent {
 
-    AID[] curators;
+    List<AID> curators = new ArrayList<>();
+    Map<String, AID> requests = new HashMap<>();
 
     private void searchCurators() {
         DFAgentDescription template = new DFAgentDescription();
@@ -36,9 +33,9 @@ public class TourGuide extends Agent {
 
         try {
             DFAgentDescription[] result = DFService.search(this, template);
-            curators = new AID[result.length];
             for (int i = 0; i < result.length; ++i) {
-                curators[i] = result[i].getName();
+                if (!curators.contains(result[i].getName()))
+                    curators.add(result[i].getName());
             }
         } catch (FIPAException e) {
             e.printStackTrace();
@@ -62,10 +59,11 @@ public class TourGuide extends Agent {
                     if (parsed != null)
                         if (MessageType.TourRequestGuide.equals(parsed.getType())) {
                             System.out.println("Tour guide received request from profiler");
-                            queryForTour(msg.getSender(), parsed.getContent());
+                            requests.put(msg.getConversationId(), msg.getSender());
+                            queryForTour(msg.getConversationId(), parsed.getContent());
                         } else if (MessageType.TourRequestReplyCurator.equals(parsed.getType())) {
                             System.out.println("Tour guide received reply from curator");
-                            replyProfiler(parsed);
+                            replyProfiler(msg.getConversationId(), parsed);
                         }
                 }
                 else {
@@ -77,25 +75,26 @@ public class TourGuide extends Agent {
         //Ask the curator to build a virtual tour
     }
 
-    private void queryForTour(AID sender, String content) {
+    private void queryForTour(String conversationId, String content) {
         Message message = new Message(MessageType.TourRequestCurator, content);
-        message.setInterstedParty(sender);
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-        msg.addReceiver(curators[0]);
+        msg.addReceiver(curators.get(0));
+        msg.setConversationId(conversationId);
         msg.setLanguage("English");
-        msg.setOntology("Weather-forecast-ontology");
         msg.setContent(message.toString());
         send(msg);
     }
 
-    private void replyProfiler(Message parsed) {
-        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-        msg.addReceiver(parsed.getInterstedParty());
-        msg.setLanguage("English");
-        msg.setOntology("Weather-forecast-ontology");
-        msg.setContent((new Message(MessageType.TourRequestReplyGuide, parsed.getContent())).toString());
-        this.send(msg);
+    private void replyProfiler(String conversationId, Message parsed) {
+        if (requests.containsKey(conversationId)) {
+            ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+            msg.addReceiver(requests.get(conversationId));
+            msg.setLanguage("English");
+            msg.setContent((new Message(MessageType.TourRequestReplyGuide, parsed.getContent())).toString());
+            this.send(msg);
+            requests.remove(conversationId);
+        }
     }
 
     private void registerTourService(){
