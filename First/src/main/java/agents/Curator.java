@@ -4,12 +4,13 @@ import domain.Artifact;
 import domain.Interests;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.proto.states.MsgReceiver;
 import messages.Message;
 import messages.MessageType;
@@ -22,6 +23,7 @@ import java.util.*;
 public class Curator extends Agent {
 
     private Map<String, Artifact> collection = new HashMap<>();
+    DataStore store;
 
     private String getTour(String unparsed) {
         Interests interest = Interests.valueOf(unparsed);
@@ -42,12 +44,60 @@ public class Curator extends Agent {
         //Register the service in the DF
         registerCuratorService();
 
+        store = new DataStore();
+
+        /*
+        MessageTemplate tourRequesttemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                System.out.println("Received the msg");
+                System.out.println(msg);
+                String content = msg.getContent();
+                Message parsed = Message.fromString(content);
+                return parsed != null && MessageType.TourRequestCurator.equals(parsed.getType());
+            }
+        });
+        */
+
+
+        MessageTemplate template = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage aclMessage) {
+                System.out.println("Testing match");
+                return true;
+            }
+        });
+
+        MsgReceiver tourRequest = new MsgReceiver(this, template, MsgReceiver.INFINITE, store, "tourRequests"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                System.out.println("Some message");
+            }
+        };
+
+        addBehaviour(tourRequest);
+
+        addBehaviour(new WakerBehaviour(this, 6000) {
+            @Override
+            protected void onWake() {
+                System.out.println("Trying the store");
+                System.out.println(store);
+            }
+        });
+
+        //MsgReceiver t = new MsgReceiver(this, template, store, 1000, "msgRes");
+
+
         //Start listening for requests
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
+
+
+                /*
                 ACLMessage msg = myAgent.receive();
                 if (msg != null) {
+
 
 
                     // Message received. Process it
@@ -66,8 +116,11 @@ public class Curator extends Agent {
                 } else {
                     block();
                 }
+                */
             }
+
         });
+
     }
 
     private Message replyTour(String interest, AID interestedParty) {
