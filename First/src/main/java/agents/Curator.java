@@ -46,8 +46,6 @@ public class Curator extends Agent {
             public void action() {
                 ACLMessage msg = myAgent.receive();
                 if (msg != null) {
-
-
                     // Message received. Process it
                     String content = msg.getContent();
                     Message parsed = Message.fromString(content);
@@ -69,8 +67,7 @@ public class Curator extends Agent {
     }
 
     private Message replyTour(String interest) {
-        Message reply = new Message(MessageType.TourRequestReplyCurator, getTour(interest));
-        return reply;
+        return new Message(MessageType.TourRequestReplyCurator, getTour(interest));
     }
 
     private Message replyInfo(String name) {
@@ -83,7 +80,6 @@ public class Curator extends Agent {
         if (receivedMsg.getConversationId() != null && !receivedMsg.getConversationId().isEmpty())
             msg.setConversationId(receivedMsg.getConversationId());
         msg.setLanguage("English");
-        msg.setOntology("Weather-forecast-ontology");
         msg.setContent(reply.toString());
         this.send(msg);
     }

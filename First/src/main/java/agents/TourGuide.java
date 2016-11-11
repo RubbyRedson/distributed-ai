@@ -82,7 +82,6 @@ public class TourGuide extends Agent {
         msg.addReceiver(curators.get(0));
         msg.setConversationId(conversationId);
         msg.setLanguage("English");
-        msg.setOntology("Weather-forecast-ontology");
         msg.setContent(message.toString());
         send(msg);
     }
@@ -92,7 +91,6 @@ public class TourGuide extends Agent {
             ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
             msg.addReceiver(requests.get(conversationId));
             msg.setLanguage("English");
-            msg.setOntology("Weather-forecast-ontology");
             msg.setContent((new Message(MessageType.TourRequestReplyGuide, parsed.getContent())).toString());
             this.send(msg);
             requests.remove(conversationId);

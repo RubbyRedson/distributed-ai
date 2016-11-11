@@ -51,8 +51,7 @@ public class Profiler extends Agent {
         addBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {
-
-
+                searchCurators();
             }
         });
 
@@ -119,7 +118,6 @@ public class Profiler extends Agent {
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(curators.get(0));
         msg.setLanguage("English");
-        msg.setOntology("Weather-forecast-ontology");
         msg.setContent((new Message(MessageType.InfoRequest, name)).toString());
         send(msg);
     }
@@ -154,7 +152,6 @@ public class Profiler extends Agent {
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(tourGuide);
         msg.setLanguage("English");
-        msg.setOntology("Weather-forecast-ontology");
         addBehaviour(new OneShotBehaviour(this) {
             @Override
             public void action() {
