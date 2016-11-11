@@ -3,9 +3,7 @@ package agents;
 import domain.Interests;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.TickerBehaviour;
+import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -47,10 +45,29 @@ public class Profiler extends Agent {
         addBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {
-                searchTours();
+
+
+            }
+        });
+
+        SequentialBehaviour seq = new SequentialBehaviour();
+        seq.addSubBehaviour(new OneShotBehaviour() {
+            @Override
+            public void action() {
+                System.out.println("Searching the curators");
                 searchCurators();
             }
         });
+        seq.addSubBehaviour(new WakerBehaviour(this, 1000) {
+            @Override
+            protected void onWake() {
+                System.out.println("Searching tours");
+                searchTours();
+            }
+        });
+
+        addBehaviour(seq);
+
 
         addBehaviour(new CyclicBehaviour() {
             @Override

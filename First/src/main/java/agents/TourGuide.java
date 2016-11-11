@@ -55,6 +55,7 @@ public class TourGuide extends Agent {
             public void action() {
                 ACLMessage msg = myAgent.receive();
                 if (msg != null) {
+
                     // Message received. Process it
                     String content = msg.getContent();
                     Message parsed = Message.fromString(content);

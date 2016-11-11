@@ -10,6 +10,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.proto.states.MsgReceiver;
 import messages.Message;
 import messages.MessageType;
 
@@ -47,6 +48,7 @@ public class Curator extends Agent {
             public void action() {
                 ACLMessage msg = myAgent.receive();
                 if (msg != null) {
+
 
                     // Message received. Process it
                     String content = msg.getContent();
