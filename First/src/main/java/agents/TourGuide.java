@@ -26,7 +26,7 @@ domain.Interests: Flower, Portraits etc
 */
 public class TourGuide extends Agent {
 
-    AID[] curators;
+    List<AID> curators = new ArrayList<>();
 
     private void searchCurators() {
         DFAgentDescription template = new DFAgentDescription();
@@ -36,9 +36,9 @@ public class TourGuide extends Agent {
 
         try {
             DFAgentDescription[] result = DFService.search(this, template);
-            curators = new AID[result.length];
             for (int i = 0; i < result.length; ++i) {
-                curators[i] = result[i].getName();
+                if (!curators.contains(result[i].getName()))
+                    curators.add(result[i].getName());
             }
         } catch (FIPAException e) {
             e.printStackTrace();
@@ -82,7 +82,7 @@ public class TourGuide extends Agent {
         message.setInterstedParty(sender);
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-        msg.addReceiver(curators[0]);
+        msg.addReceiver(curators.get(0));
         msg.setLanguage("English");
         msg.setOntology("Weather-forecast-ontology");
         msg.setContent(message.toString());

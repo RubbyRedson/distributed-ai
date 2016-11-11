@@ -12,14 +12,19 @@ import jade.lang.acl.ACLMessage;
 import messages.Message;
 import messages.MessageType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by victoraxelsson on 2016-11-09.
  */
 public class Profiler extends Agent {
 
-    AID[] curators;
+    List<AID> curators = new ArrayList<>();
+    List<AID> tourGuides = new ArrayList<>();
 
     private void searchCurators() {
+        System.out.println("Searching the curators");
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType("curator");
@@ -27,9 +32,9 @@ public class Profiler extends Agent {
 
         try {
             DFAgentDescription[] result = DFService.search(this, template);
-            curators = new AID[result.length];
             for (int i = 0; i < result.length; ++i) {
-                curators[i] = result[i].getName();
+                if (!curators.contains(result[i].getName()))
+                curators.add(result[i].getName());
             }
         } catch (FIPAException e) {
             e.printStackTrace();
@@ -54,19 +59,34 @@ public class Profiler extends Agent {
         seq.addSubBehaviour(new OneShotBehaviour() {
             @Override
             public void action() {
-                System.out.println("Searching the curators");
                 searchCurators();
             }
         });
         seq.addSubBehaviour(new WakerBehaviour(this, 1000) {
             @Override
             protected void onWake() {
-                System.out.println("Searching tours");
+                searchTours();
+            }
+        });
+        addBehaviour(seq);
+
+        ParallelBehaviour update = new ParallelBehaviour(ParallelBehaviour.WHEN_ALL);
+
+        update.addSubBehaviour(new TickerBehaviour(this, 5000) {
+            @Override
+            protected void onTick() {
+                searchCurators();
+            }
+        });
+
+        update.addSubBehaviour(new TickerBehaviour(this, 5000) {
+            @Override
+            protected void onTick() {
                 searchTours();
             }
         });
 
-        addBehaviour(seq);
+        addBehaviour(update);
 
 
         addBehaviour(new CyclicBehaviour() {
@@ -96,7 +116,7 @@ public class Profiler extends Agent {
         int endIndex = content.indexOf('\'', startIndex);
         String name = content.substring(startIndex, endIndex);
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-        msg.addReceiver(curators[0]);
+        msg.addReceiver(curators.get(0));
         msg.setLanguage("English");
         msg.setOntology("Weather-forecast-ontology");
         msg.setContent((new Message(MessageType.InfoRequest, name)).toString());
@@ -104,6 +124,7 @@ public class Profiler extends Agent {
     }
 
     private void searchTours() {
+        System.out.println("Searching tours");
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType("virtual_tour");
@@ -111,14 +132,13 @@ public class Profiler extends Agent {
 
         try {
             DFAgentDescription[] result = DFService.search(this, template);
-            AID[] tourGuides = new AID[result.length];
             for (int i = 0; i < result.length; ++i) {
-                tourGuides[i] = result[i].getName();
+                if (!tourGuides.contains(result[i].getName())) tourGuides.add(result[i].getName());
             }
 
             //Just take the first one, if there is any
-            if (tourGuides != null && tourGuides.length > 0) {
-                askForTour(tourGuides[0]);
+            if (tourGuides != null && tourGuides.size() > 0) {
+                askForTour(tourGuides.get(0));
             } else {
                 System.out.println("I couldn't find any tour guides");
             }
@@ -134,9 +154,9 @@ public class Profiler extends Agent {
         msg.addReceiver(tourGuide);
         msg.setLanguage("English");
         msg.setOntology("Weather-forecast-ontology");
-        addBehaviour(new TickerBehaviour(this, 5000) {
+        addBehaviour(new OneShotBehaviour(this) {
             @Override
-            protected void onTick() {
+            public void action() {
                 Message message = new Message(MessageType.TourRequestGuide,
                         String.valueOf(Interests.getRandom()));
                 msg.setContent(message.toString());
