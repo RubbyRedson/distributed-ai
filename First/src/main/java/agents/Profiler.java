@@ -6,9 +6,11 @@ import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import messages.Message;
 import messages.MessageType;
 
@@ -24,37 +26,19 @@ public class Profiler extends Agent {
     List<AID> tourGuides = new ArrayList<>();
     private static int counter = 1;
 
-    private void searchCurators() {
-        System.out.println("Searching the curators");
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("curator");
-        template.addServices(sd);
+    private static String CURATOR_TYPE = "curator";
+    private static String TOUR_GUIDE_TYPE = "virtual_tour";
 
-        try {
-            DFAgentDescription[] result = DFService.search(this, template);
-            for (int i = 0; i < result.length; ++i) {
-                if (!curators.contains(result[i].getName()))
-                curators.add(result[i].getName());
-            }
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     protected void setup() {
         //Ask TourGuide for personalized virtual tours
         //Ask the Curator about detailed information of items in the tour
 
-        //This should maybe be tick instead? Or just ask on user input (whatever that is)
-        addBehaviour(new OneShotBehaviour() {
-            @Override
-            public void action() {
-                searchCurators();
-            }
-        });
+        createSubscription(CURATOR_TYPE);
+        createSubscription(TOUR_GUIDE_TYPE);
 
+        //First search for curators then tours
         SequentialBehaviour seq = new SequentialBehaviour();
         seq.addSubBehaviour(new OneShotBehaviour() {
             @Override
@@ -70,45 +54,90 @@ public class Profiler extends Agent {
         });
         addBehaviour(seq);
 
-        ParallelBehaviour update = new ParallelBehaviour(ParallelBehaviour.WHEN_ALL);
 
+        updateServiceProviders();
+
+        //Start the message loop
+        addBehaviour(new CyclicBehaviour() {
+            @Override
+            public void action() {
+                ACLMessage msg = myAgent.receive();
+                if (msg != null) {
+
+                    //We got a new curator or tour guide
+                    if(msg.getSender().getName().equalsIgnoreCase(getDefaultDF().getName())){
+                        System.out.println("Subscriptions trigged");
+                        updateServiceProviders();
+                    }else{
+
+                        //we got some other kind of message
+                        deliverMessage(msg);
+                    }
+                }else {
+                    block();
+                }
+            }
+        });
+    }
+
+    private void deliverMessage(ACLMessage msg){
+        String content = msg.getContent();
+        Message parsed = Message.fromString(content);
+
+        if (parsed != null){
+            if (MessageType.TourRequestReplyGuide.equals(parsed.getType())) {
+                System.out.println("Profiler received tour guide reply: " + parsed.getContent());
+                queryForInfo(parsed.getContent());
+            } else if (MessageType.InfoRequestReply.equals(parsed.getType())) {
+                System.out.println("Profiler received info reply: " + parsed.getContent());
+            }
+        }
+    }
+
+    private void createSubscription(String type){
+        DFAgentDescription dfd = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(type);
+        dfd.addServices(sd);
+        SearchConstraints sc = new SearchConstraints();
+        sc.setMaxResults(new Long(1));
+
+        send(DFService.createSubscriptionMessage(this, getDefaultDF(), dfd, sc));
+    }
+
+    private void updateServiceProviders(){
+        ParallelBehaviour update = new ParallelBehaviour(ParallelBehaviour.WHEN_ALL);
         update.addSubBehaviour(new TickerBehaviour(this, 5000) {
             @Override
             protected void onTick() {
                 searchCurators();
             }
         });
-
         update.addSubBehaviour(new TickerBehaviour(this, 5000) {
             @Override
             protected void onTick() {
                 searchTours();
             }
         });
-
         addBehaviour(update);
+    }
 
+    private void searchCurators() {
+        System.out.println("Searching the curators");
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(CURATOR_TYPE);
+        template.addServices(sd);
 
-        addBehaviour(new CyclicBehaviour() {
-            @Override
-            public void action() {
-                ACLMessage msg = myAgent.receive();
-                if (msg != null) {
-                    // Message received. Process it
-                    String content = msg.getContent();
-                    Message parsed = Message.fromString(content);
-                    if (parsed != null)
-                        if (MessageType.TourRequestReplyGuide.equals(parsed.getType())) {
-                            System.out.println("Profiler received tour guide reply: " + parsed.getContent());
-                            queryForInfo(parsed.getContent());
-                        } else if (MessageType.InfoRequestReply.equals(parsed.getType())) {
-                            System.out.println("Profiler received info reply: " + parsed.getContent());
-                        }
-                } else {
-                    block();
-                }
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            for (int i = 0; i < result.length; ++i) {
+                if (!curators.contains(result[i].getName()))
+                    curators.add(result[i].getName());
             }
-        });
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
     }
 
     private void queryForInfo(String content) {
@@ -126,7 +155,7 @@ public class Profiler extends Agent {
         System.out.println("Searching tours");
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
-        sd.setType("virtual_tour");
+        sd.setType(TOUR_GUIDE_TYPE);
         template.addServices(sd);
 
         try {
@@ -148,7 +177,6 @@ public class Profiler extends Agent {
     }
 
     private void askForTour(AID tourGuide) {
-//        System.out.println(tourGuide);
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(tourGuide);
         msg.setLanguage("English");

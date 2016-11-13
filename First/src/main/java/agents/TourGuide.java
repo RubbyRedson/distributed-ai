@@ -111,8 +111,6 @@ public class TourGuide extends Agent {
         } catch (FIPAException e) {
             e.printStackTrace();
         }
-
-
     }
 
     @Override
