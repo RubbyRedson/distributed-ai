@@ -23,6 +23,9 @@ import javafx.stage.Stage;
 public class ProfilerApp extends Application {
     Label lbl;
     int msgCounter;
+    TextField userTextField;
+
+    OnInput onInput;
 
     private static ProfilerApp instance;
 
@@ -51,10 +54,22 @@ public class ProfilerApp extends Application {
         Label userCommand = new Label("Command:");
         grid.add(userCommand, 0, 1);
 
-        TextField userTextField = new TextField();
+        userTextField = new TextField();
         grid.add(userTextField, 1, 1);
 
         Button btn = new Button("Execute");
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(onInput != null){
+                    onInput.onCommand(userTextField.getText());
+                    userTextField.setText("");
+                }else{
+                    System.out.println("There is no listener for the command");
+                }
+            }
+        });
+
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
@@ -65,11 +80,10 @@ public class ProfilerApp extends Application {
         sp.setContent(lbl);
         grid.add(sp, 0, 4, 2, 4);
 
-        Scene scene = new Scene(grid, 300, 275);
+        Scene scene = new Scene(grid, 1024, 600);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Smart Museum - Profiler");
         primaryStage.show();
-
     }
 
     public void setLabel(String msg){
@@ -80,5 +94,10 @@ public class ProfilerApp extends Application {
                 lbl.setText("[" + msgCounter +"] " + msg + "\n" + lbl.getText());
             }
         });
+    }
+
+
+    public void setOnInput(OnInput onInput) {
+        this.onInput = onInput;
     }
 }

@@ -1,6 +1,7 @@
 package agents;
 
 import domain.Interest;
+import gui.OnInput;
 import gui.ProfilerApp;
 import jade.core.AID;
 import jade.core.Agent;
@@ -22,7 +23,7 @@ import java.util.List;
 /**
  * Created by victoraxelsson on 2016-11-09.
  */
-public class Profiler extends Agent {
+public class Profiler extends Agent implements OnInput{
 
     List<AID> curators = new ArrayList<>();
     List<AID> tourGuides = new ArrayList<>();
@@ -84,6 +85,8 @@ public class Profiler extends Agent {
         startGui();
     }
 
+
+
     private void startGui(){
         new Thread(){
             @Override
@@ -91,6 +94,20 @@ public class Profiler extends Agent {
                 Application.launch(ProfilerApp.class);
             }
         }.start();
+
+
+        addBehaviour(new TickerBehaviour(this, 100) {
+            @Override
+            protected void onTick() {
+                if(ProfilerApp.getInstance() != null){
+                    System.out.println("Application have loaded");
+                    ProfilerApp.getInstance().setOnInput(Profiler.this);
+                    stop();
+                }else {
+                    System.out.println("GUI have not loaded yet");
+                }
+            }
+        });
     }
 
     private void deliverMessageToApp(String msg){
@@ -105,9 +122,11 @@ public class Profiler extends Agent {
 
         if (parsed != null){
             if (MessageType.TourRequestReplyGuide.equals(parsed.getType())) {
+                deliverMessageToApp("Here is the tour: \n" + parsed.getContent());
                 System.out.println("Profiler received tour guide reply: " + parsed.getContent());
                 queryForInfo(parsed.getContent());
             } else if (MessageType.InfoRequestReply.equals(parsed.getType())) {
+                deliverMessageToApp("Here is the tour: \n" + parsed.getContent());
                 System.out.println("Profiler received info reply: " + parsed.getContent());
             }
         }
@@ -164,6 +183,7 @@ public class Profiler extends Agent {
         int startIndex = content.indexOf("name='") + "name='".length();
         int endIndex = content.indexOf('\'', startIndex);
         String name = content.substring(startIndex, endIndex);
+
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(curators.get(0));
         msg.setLanguage("English");
@@ -189,7 +209,12 @@ public class Profiler extends Agent {
 
             //Just take the first one, if there is any
             if (tourGuides != null && tourGuides.size() > 0) {
-                askForTour(tourGuides.get(0));
+
+                String names = "";
+                for (int i = 0; i < tourGuides.size(); i++){
+                    names += tourGuides.get(i).getLocalName() + ",";
+                }
+                deliverMessageToApp("\n----\nI got some new tour guides. Which one do you want? " + names + "\n\nSYNOPSIS: tourguide:<name> \n----");
             } else {
                 System.out.println("I couldn't find any tour guides");
             }
@@ -218,5 +243,40 @@ public class Profiler extends Agent {
     @Override
     protected void takeDown() {
         super.takeDown();
+    }
+
+    private boolean isValidCommand(String msg){
+        return msg.contains(":");
+    }
+
+    @Override
+    public void onCommand(String msg) {
+
+        if(isValidCommand(msg)){
+            String[] parts = msg.split(":");
+
+            switch (parts[0]){
+                case "tourguide":
+                    AID guide = null;
+                    for (int i = 0; i < tourGuides.size(); i++){
+                        if(tourGuides.get(i).getLocalName().equalsIgnoreCase(parts[1])){
+                            guide = tourGuides.get(i);
+                            break;
+                        }
+                    }
+                    if(guide != null){
+                        askForTour(tourGuides.get(0));
+                    }else{
+                        deliverMessageToApp("There is no such tour guide");
+                    }
+
+                    break;
+                default:
+                    deliverMessageToApp("I could't find that command");
+            }
+
+        }else {
+            deliverMessageToApp("That is not a valid message");
+        }
     }
 }
