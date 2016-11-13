@@ -179,17 +179,15 @@ public class Profiler extends Agent implements OnInput{
     }
 
     private void queryForInfo(String artifactName) {
-        /*
-        int startIndex = content.indexOf("name='") + "name='".length();
-        int endIndex = content.indexOf('\'', startIndex);
-        String name = content.substring(startIndex, endIndex);
-        */
-
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-        msg.addReceiver(curators.get(0));
-        msg.setLanguage("English");
-        msg.setContent((new Message(MessageType.InfoRequest, artifactName)).toString());
-        send(msg);
+        if(curators.size() > 0){
+            msg.addReceiver(curators.get(0));
+            msg.setLanguage("English");
+            msg.setContent((new Message(MessageType.InfoRequest, artifactName)).toString());
+            send(msg);
+        }else{
+            deliverMessageToApp("There doesn't seems to be any curator available at the moment. You will have to wait (you will be notified)");
+        }
     }
 
     private void searchTours() {
@@ -215,7 +213,7 @@ public class Profiler extends Agent implements OnInput{
                 for (int i = 0; i < tourGuides.size(); i++){
                     names += tourGuides.get(i).getLocalName() + ",";
                 }
-                deliverMessageToApp("I got some new tour guides. Which one do you want? " + names + "\n\nSYNOPSIS: tourguide:<name>");
+                deliverMessageToApp("Do you want to select a new tourguide: " + names + "\n\nSYNOPSIS: tourguide:<name>");
             } else {
                 System.out.println("I couldn't find any tour guides");
             }
