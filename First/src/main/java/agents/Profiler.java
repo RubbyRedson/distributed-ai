@@ -125,8 +125,12 @@ public class Profiler extends Agent implements OnInput{
                 System.out.println("Profiler received tour guide reply: " + parsed.getContent());
                 deliverMessageToApp("If you want more info about some artifact: \nSYNPOSIS: info:<artifact name>");
             } else if (MessageType.InfoRequestReply.equals(parsed.getType())) {
-                deliverMessageToApp("Here is more infor on the tour: \n" + parsed.getContent());
-                System.out.println("Profiler received info reply: " + parsed.getContent());
+                if (parsed.getContent() == null || "null".equals(parsed.getContent()) || parsed.getContent().isEmpty())
+                    deliverMessageToApp("There is no such artifact!");
+                else {
+                    deliverMessageToApp("Here is more info on the artifact: \n" + parsed.getContent());
+                    System.out.println("Profiler received info reply: " + parsed.getContent());
+                }
             }
         }
     }

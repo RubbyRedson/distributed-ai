@@ -26,10 +26,10 @@ public class Curator extends Agent {
 
     private String getTour(String unparsed) {
         Interest interest = Interest.valueOf(unparsed);
-        List<Artifact> tour = new ArrayList<>();
+        StringBuilder tour = new StringBuilder();
 
         for (Artifact a : Artifact.getCollection()) {
-            if (a.getType().equals(interest)) tour.add(a);
+            if (a.getType().equals(interest)) tour.append(a.getName()).append("\n");
         }
 
         return tour.toString();

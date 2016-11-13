@@ -24,12 +24,11 @@ public class Artifact {
 
     @Override
     public String toString() {
-        return "Artifact{" +
-                "type=" + type +
-                ", name='" + name + '\'' +
-                ", author='" + author + '\'' +
-                ", date='" + date + '\'' +
-                '}';
+        return "Artifact" +
+                "\nType: " + type +
+                "\nName: '" + name + '\'' +
+                "\nAuthor: '" + author + '\'' +
+                "\nDate: '" + date + '\'';
     }
 
     public static List<Artifact> getCollection() {
@@ -49,11 +48,15 @@ public class Artifact {
             Artifact flowers = new Artifact(Interest.Flowers, "Tulips",
                     "Two Gogh", "Unknown");
 
+            Artifact flowers2 = new Artifact(Interest.Flowers, "Still Not Sunflowers",
+                    "Two Gogh", "Unknown");
+
             collection.add(painting1);
             collection.add(painting2);
             collection.add(cabbage);
             collection.add(chocolate);
             collection.add(flowers);
+            collection.add(flowers2);
         }
         return collection;
     }
