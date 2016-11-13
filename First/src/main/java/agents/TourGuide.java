@@ -25,22 +25,6 @@ public class TourGuide extends Agent {
     List<AID> curators = new ArrayList<>();
     Map<String, AID> requests = new HashMap<>();
 
-    private void searchCurators() {
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("curator");
-        template.addServices(sd);
-
-        try {
-            DFAgentDescription[] result = DFService.search(this, template);
-            for (int i = 0; i < result.length; ++i) {
-                if (!curators.contains(result[i].getName()))
-                    curators.add(result[i].getName());
-            }
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     protected void setup() {
@@ -65,14 +49,30 @@ public class TourGuide extends Agent {
                             System.out.println("Tour guide received reply from curator");
                             replyProfiler(msg.getConversationId(), parsed);
                         }
-                }
-                else {
+                } else {
                     block();
                 }
             }
         });
 
         //Ask the curator to build a virtual tour
+    }
+
+    private void searchCurators() {
+        DFAgentDescription template = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType("curator");
+        template.addServices(sd);
+
+        try {
+            DFAgentDescription[] result = DFService.search(this, template);
+            for (int i = 0; i < result.length; ++i) {
+                if (!curators.contains(result[i].getName()))
+                    curators.add(result[i].getName());
+            }
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
     }
 
     private void queryForTour(String conversationId, String content) {
@@ -103,7 +103,7 @@ public class TourGuide extends Agent {
 
         ServiceDescription serviceDescription = new ServiceDescription();
         serviceDescription.setType("virtual_tour");
-        serviceDescription.setName("VirtualTour");
+        serviceDescription.setName(getLocalName());
         dfd.addServices(serviceDescription);
 
         try {
@@ -117,6 +117,7 @@ public class TourGuide extends Agent {
 
     @Override
     protected void takeDown() {
-        super.takeDown();
+        try { DFService.deregister(this); }
+        catch (Exception e) {}
     }
 }

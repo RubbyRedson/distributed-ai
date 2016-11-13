@@ -45,20 +45,6 @@ public class Curator extends Agent {
 
         store = new DataStore();
 
-        /*
-        MessageTemplate tourRequesttemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
-            @Override
-            public boolean match(ACLMessage msg) {
-                System.out.println("Received the msg");
-                System.out.println(msg);
-                String content = msg.getContent();
-                Message parsed = Message.fromString(content);
-                return parsed != null && MessageType.TourRequestCurator.equals(parsed.getType());
-            }
-        });
-        */
-
-
         MessageTemplate template = new MessageTemplate(new MessageTemplate.MatchExpression() {
             @Override
             public boolean match(ACLMessage msg) {
@@ -134,7 +120,7 @@ public class Curator extends Agent {
 
         ServiceDescription serviceDescription = new ServiceDescription();
         serviceDescription.setType("curator");
-        serviceDescription.setName("Curator");
+        serviceDescription.setName(getLocalName());
         dfd.addServices(serviceDescription);
 
         try {
@@ -148,6 +134,7 @@ public class Curator extends Agent {
 
     @Override
     protected void takeDown() {
-        super.takeDown();
+        try { DFService.deregister(this); }
+        catch (Exception e) {}
     }
 }
