@@ -20,7 +20,6 @@ public class Message {
         return content;
     }
 
-
     @Override
     public String toString() {
         return type + "\r\n" + content;

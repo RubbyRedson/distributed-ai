@@ -70,7 +70,6 @@ public class Profiler extends Agent implements OnInput{
 
                     //We got a new curator or tour guide
                     if(msg.getSender().getName().equalsIgnoreCase(getDefaultDF().getName())){
-                        deliverMessageToApp("Subscriptions trigged");
                         updateServiceProviders();
                     }else{
 
@@ -124,9 +123,9 @@ public class Profiler extends Agent implements OnInput{
             if (MessageType.TourRequestReplyGuide.equals(parsed.getType())) {
                 deliverMessageToApp("Here is the tour: \n" + parsed.getContent());
                 System.out.println("Profiler received tour guide reply: " + parsed.getContent());
-                queryForInfo(parsed.getContent());
+                deliverMessageToApp("If you want more info about some artifact: \nSYNPOSIS: info:<artifact name>");
             } else if (MessageType.InfoRequestReply.equals(parsed.getType())) {
-                deliverMessageToApp("Here is the tour: \n" + parsed.getContent());
+                deliverMessageToApp("Here is more infor on the tour: \n" + parsed.getContent());
                 System.out.println("Profiler received info reply: " + parsed.getContent());
             }
         }
@@ -179,15 +178,17 @@ public class Profiler extends Agent implements OnInput{
         }
     }
 
-    private void queryForInfo(String content) {
+    private void queryForInfo(String artifactName) {
+        /*
         int startIndex = content.indexOf("name='") + "name='".length();
         int endIndex = content.indexOf('\'', startIndex);
         String name = content.substring(startIndex, endIndex);
+        */
 
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.addReceiver(curators.get(0));
         msg.setLanguage("English");
-        msg.setContent((new Message(MessageType.InfoRequest, name)).toString());
+        msg.setContent((new Message(MessageType.InfoRequest, artifactName)).toString());
         send(msg);
     }
 
@@ -214,7 +215,7 @@ public class Profiler extends Agent implements OnInput{
                 for (int i = 0; i < tourGuides.size(); i++){
                     names += tourGuides.get(i).getLocalName() + ",";
                 }
-                deliverMessageToApp("\n----\nI got some new tour guides. Which one do you want? " + names + "\n\nSYNOPSIS: tourguide:<name> \n----");
+                deliverMessageToApp("I got some new tour guides. Which one do you want? " + names + "\n\nSYNOPSIS: tourguide:<name>");
             } else {
                 System.out.println("I couldn't find any tour guides");
             }
@@ -256,6 +257,9 @@ public class Profiler extends Agent implements OnInput{
             String[] parts = msg.split(":");
 
             switch (parts[0]){
+                case "info":
+                    queryForInfo(parts[1]);
+                    break;
                 case "tourguide":
                     AID guide = null;
                     for (int i = 0; i < tourGuides.size(); i++){

@@ -91,7 +91,7 @@ public class ProfilerApp extends Application {
             @Override
             public void run() {
                 msgCounter++;
-                lbl.setText("[" + msgCounter +"] " + msg + "\n" + lbl.getText());
+                lbl.setText("\n----[" + msgCounter +"]----\n " + msg + "\n" + lbl.getText() + "\n----");
             }
         });
     }
