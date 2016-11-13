@@ -133,10 +133,6 @@ public class Profiler extends Agent {
             List<AID> newCurators = new ArrayList<>();
             for (int i = 0; i < result.length; ++i) {
                 newCurators.add(result[i].getName());
-                /*
-                if (!curators.contains(result[i].getName()))
-                    curators.add(result[i].getName());
-                    */
             }
             curators = newCurators;
         } catch (FIPAException e) {
@@ -164,9 +160,12 @@ public class Profiler extends Agent {
 
         try {
             DFAgentDescription[] result = DFService.search(this, template);
+
+            List<AID> newTourGuides = new ArrayList<>();
             for (int i = 0; i < result.length; ++i) {
-                if (!tourGuides.contains(result[i].getName())) tourGuides.add(result[i].getName());
+                newTourGuides.add(result[i].getName());
             }
+            tourGuides = newTourGuides;
 
             //Just take the first one, if there is any
             if (tourGuides != null && tourGuides.size() > 0) {
