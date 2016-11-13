@@ -54,7 +54,6 @@ public class Profiler extends Agent {
         });
         addBehaviour(seq);
 
-
         updateServiceProviders();
 
         //Start the message loop
@@ -107,15 +106,15 @@ public class Profiler extends Agent {
 
     private void updateServiceProviders(){
         ParallelBehaviour update = new ParallelBehaviour(ParallelBehaviour.WHEN_ALL);
-        update.addSubBehaviour(new TickerBehaviour(this, 5000) {
+        update.addSubBehaviour(new OneShotBehaviour() {
             @Override
-            protected void onTick() {
+            public void action() {
                 searchCurators();
             }
         });
-        update.addSubBehaviour(new TickerBehaviour(this, 5000) {
+        update.addSubBehaviour(new OneShotBehaviour() {
             @Override
-            protected void onTick() {
+            public void action() {
                 searchTours();
             }
         });
@@ -131,10 +130,15 @@ public class Profiler extends Agent {
 
         try {
             DFAgentDescription[] result = DFService.search(this, template);
+            List<AID> newCurators = new ArrayList<>();
             for (int i = 0; i < result.length; ++i) {
+                newCurators.add(result[i].getName());
+                /*
                 if (!curators.contains(result[i].getName()))
                     curators.add(result[i].getName());
+                    */
             }
+            curators = newCurators;
         } catch (FIPAException e) {
             e.printStackTrace();
         }

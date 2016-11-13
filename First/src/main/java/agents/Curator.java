@@ -128,13 +128,12 @@ public class Curator extends Agent {
         } catch (FIPAException e) {
             e.printStackTrace();
         }
-
-
     }
 
     @Override
     protected void takeDown() {
-        try { DFService.deregister(this); }
-        catch (Exception e) {}
+        try {
+            DFService.deregister(this);
+        } catch (Exception e) {}
     }
 }

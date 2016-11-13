@@ -115,7 +115,8 @@ public class TourGuide extends Agent {
 
     @Override
     protected void takeDown() {
-        try { DFService.deregister(this); }
-        catch (Exception e) {}
+        try {
+            DFService.deregister(this);
+        } catch (Exception e) {}
     }
 }

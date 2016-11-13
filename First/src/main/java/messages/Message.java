@@ -27,15 +27,18 @@ public class Message {
     }
 
     public static Message fromString(String msg) {
-        Message message;
+        Message message = null;
         String[] separated = msg.split("\r\n");
         if (separated.length < 1) return null;
 
-        MessageType type = MessageType.valueOf(separated[0]);
-        String content = separated[1];
-        message = new Message(type, content);
-//        System.out.println("---------------------------------\n" +
-//                "Parsed message:\n" + message + "\n---------------------------------");
+        try {
+            MessageType type = MessageType.valueOf(separated[0]);
+            String content = separated[1];
+            message = new Message(type, content);
+        }catch (IllegalArgumentException e){
+            System.out.println("Not found message type: " + separated[0]);
+        }
+
         return message;
     }
 }
