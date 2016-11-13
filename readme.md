@@ -8,4 +8,4 @@ It assumed that you know (and have):
 ## How-to run
 - `git clone <project.git>`
 - Move to the First folder
-- run 'mvn compile -Pjava-main exec:java' in the terminal
+- run 'mvn compile -Pjade-main exec:java' in the terminal
