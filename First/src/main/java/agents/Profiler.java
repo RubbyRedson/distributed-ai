@@ -69,7 +69,7 @@ public class Profiler extends Agent {
 
                     //We got a new curator or tour guide
                     if(msg.getSender().getName().equalsIgnoreCase(getDefaultDF().getName())){
-                        System.out.println("Subscriptions trigged");
+                        deliverMessageToApp("Subscriptions trigged");
                         updateServiceProviders();
                     }else{
 
@@ -93,9 +93,9 @@ public class Profiler extends Agent {
         }.start();
     }
 
-    private void deliverMessage(String msg){
+    private void deliverMessageToApp(String msg){
         if( ProfilerApp.getInstance() != null){
-            ProfilerApp.getInstance().setLabel("Some data from the profiler agent: " + c);
+            ProfilerApp.getInstance().setLabel(msg);
         }
     }
 

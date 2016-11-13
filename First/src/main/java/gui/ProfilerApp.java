@@ -8,10 +8,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -24,13 +21,14 @@ import javafx.stage.Stage;
  * Created by victoraxelsson on 2016-11-13.
  */
 public class ProfilerApp extends Application {
-
-
     Label lbl;
+    int msgCounter;
+
     private static ProfilerApp instance;
 
     public ProfilerApp(){
         instance = this;
+        msgCounter = 0;
     }
 
     public static ProfilerApp getInstance(){
@@ -63,7 +61,9 @@ public class ProfilerApp extends Application {
         grid.add(hbBtn, 1, 3);
 
         lbl = new Label();
-        grid.add(lbl, 0, 4, 2, 1);
+        ScrollPane sp = new ScrollPane();
+        sp.setContent(lbl);
+        grid.add(sp, 0, 4, 2, 4);
 
         Scene scene = new Scene(grid, 300, 275);
         primaryStage.setScene(scene);
@@ -76,7 +76,8 @@ public class ProfilerApp extends Application {
         Platform.runLater(new Runnable(){
             @Override
             public void run() {
-                lbl.setText(msg);
+                msgCounter++;
+                lbl.setText("[" + msgCounter +"] " + msg + "\n" + lbl.getText());
             }
         });
     }
