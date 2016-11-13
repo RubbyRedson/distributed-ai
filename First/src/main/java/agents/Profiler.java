@@ -1,6 +1,7 @@
 package agents;
 
 import domain.Interest;
+import gui.ProfilerApp;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.*;
@@ -11,6 +12,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import javafx.application.Application;
 import messages.Message;
 import messages.MessageType;
 
@@ -25,6 +27,8 @@ public class Profiler extends Agent {
     List<AID> curators = new ArrayList<>();
     List<AID> tourGuides = new ArrayList<>();
     private static int counter = 1;
+
+    private ProfilerApp app;
 
     private static String CURATOR_TYPE = "curator";
     private static String TOUR_GUIDE_TYPE = "virtual_tour";
@@ -77,6 +81,22 @@ public class Profiler extends Agent {
                 }
             }
         });
+        startGui();
+    }
+
+    private void startGui(){
+        new Thread(){
+            @Override
+            public void run() {
+                Application.launch(ProfilerApp.class);
+            }
+        }.start();
+    }
+
+    private void deliverMessage(String msg){
+        if( ProfilerApp.getInstance() != null){
+            ProfilerApp.getInstance().setLabel("Some data from the profiler agent: " + c);
+        }
     }
 
     private void deliverMessage(ACLMessage msg){
