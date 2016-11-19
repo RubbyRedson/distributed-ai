@@ -70,7 +70,7 @@ public class ArtistManager extends Agent {
                 //Set new budget,
 
                 allCreatedArtifacts.add(artifact);
-                budget -= artifact.getProductionCost(); 
+                budget -= artifact.getProductionCost();
                 artifact = null;
                 currAuctionPrice = -1;
             }

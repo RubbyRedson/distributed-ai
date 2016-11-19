@@ -33,9 +33,9 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
 
         ArtistArtifact artifact = null;
         if(createHighQualityProduct()){
-             artifact = new ArtistArtifact(HIGH_QUALITY_COST, true, getInterestType(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
+             artifact = new ArtistArtifact(HIGH_QUALITY_COST, true, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
         }else{
-             artifact = new ArtistArtifact(LOW_QUALITY_COST, true, getInterestType(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
+             artifact = new ArtistArtifact(LOW_QUALITY_COST, false, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
         }
 
         onDone.done(artifact);
