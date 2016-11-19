@@ -23,6 +23,7 @@ public class Curator extends Agent {
 
     private Map<String, Artifact> collection = new HashMap<>();
     DataStore store;
+    private int budget = 1000;
 
     private String getTour(String unparsed) {
         Interest interest = Interest.valueOf(unparsed);
@@ -44,6 +45,158 @@ public class Curator extends Agent {
         registerCuratorService();
 
         store = new DataStore();
+
+        //Tour requests
+        //addTourRequestFromTourGuideMsgReceiver();
+
+        //Info requests
+        //addInfoRequestMsgReceiver();
+
+        //Start auction
+        addStartAuctionMsgReceiver();
+
+        //Call for bids
+        addCFPMsgReceiver();
+
+        //Bid accepted
+        addBidAcceptedMsgReceiver();
+
+        //Bid rejected
+        addBidRejectedMsgReceiver();
+
+        //End auction
+        addEndAuctionMsgReceiver();
+
+    }
+
+    private void addEndAuctionMsgReceiver() {
+        MessageTemplate endAuctionTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.INFORM && Objects.equals(msg.getOntology(), "auction") &&
+                        Objects.equals(msg.getContent(), "Auction ended")) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+
+        MsgReceiver endAuctionReceiver = new MsgReceiver(this, endAuctionTemplate, MsgReceiver.INFINITE, store, "auctionEnd"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                System.out.println("Auction ended and that is acceptable");
+                budget += 250; //TODO balancing?
+            }
+        };
+        addBehaviour(endAuctionReceiver);
+
+    }
+
+    private void addBidRejectedMsgReceiver() {
+        MessageTemplate rejectBidTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL && Objects.equals(msg.getOntology(), "auction")) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+
+        MsgReceiver rejectBidReceiver = new MsgReceiver(this, rejectBidTemplate, MsgReceiver.INFINITE, store, "rejectBid"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                System.out.println("Foiled again! I was too late!"); //bid was rejected
+            }
+        };
+        addBehaviour(rejectBidReceiver);
+    }
+
+    private void addBidAcceptedMsgReceiver() {
+        MessageTemplate acceptBidTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL && Objects.equals(msg.getOntology(), "auction")) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+
+        MsgReceiver acceptBidReceiver = new MsgReceiver(this, acceptBidTemplate, MsgReceiver.INFINITE, store, "acceptBid"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                int price = 250; //TODO parse it
+                System.out.println("Honey! Look what I have bought! " + msg.getContent()); //dang stuff
+                budget -= price;
+            }
+        };
+        addBehaviour(acceptBidReceiver);
+    }
+
+    private void addCFPMsgReceiver() {
+        MessageTemplate cfpTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.CFP && Objects.equals(msg.getOntology(), "auction")) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        MsgReceiver cfpReceiver = new MsgReceiver(this, cfpTemplate, MsgReceiver.INFINITE, store, "cfp"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                ACLMessage reply = msg.createReply();
+                String currentPrice = msg.getContent();
+                boolean propose = computeProposal(currentPrice);
+
+                if (propose) {
+                    reply.setLanguage("English");
+                    reply.setOntology("auction");
+                    reply.setSender(this.getAgent().getAID());
+                    reply.setPerformative(ACLMessage.PROPOSE);
+                    this.getAgent().send(reply);
+                }
+            }
+        };
+        addBehaviour(cfpReceiver);
+
+    }
+
+    private void addStartAuctionMsgReceiver() {
+
+        MessageTemplate startAuctionTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.INFORM && Objects.equals(msg.getOntology(), "auction") &&
+                        Objects.equals(msg.getContent(), "A new action is about to start. Pick out your wallet")) {
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        MsgReceiver startAuctionReceiver = new MsgReceiver(this, startAuctionTemplate, MsgReceiver.INFINITE, store, "startAuction"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                ACLMessage reply = msg.createReply();
+                reply.setLanguage("English");
+                reply.setOntology("auction");
+                reply.setSender(this.getAgent().getAID());
+                reply.setPerformative(ACLMessage.CONFIRM);
+                reply.setContent("Boy am I ready");
+                this.getAgent().send(reply);
+            }
+        };
+        addBehaviour(startAuctionReceiver);
+    }
+
+    private void addTourRequestFromTourGuideMsgReceiver() {
 
         MessageTemplate template = new MessageTemplate(new MessageTemplate.MatchExpression() {
             @Override
@@ -67,7 +220,9 @@ public class Curator extends Agent {
         };
 
         addBehaviour(tourRequest);
+    }
 
+    private void addInfoRequestMsgReceiver() {
         MessageTemplate templateInfoRequest = new MessageTemplate(new MessageTemplate.MatchExpression() {
             @Override
             public boolean match(ACLMessage msg) {
@@ -90,6 +245,19 @@ public class Curator extends Agent {
         };
 
         addBehaviour(infoRequest);
+    }
+
+    private boolean computeProposal(String price) {
+        //I love buying stuff
+        try {
+            int parsed = Integer.parseInt(price);
+            if (parsed < budget)
+                return true;
+            else return false;
+        } catch (NumberFormatException e) {
+            System.out.println(price + " is not a valid price!");
+            return false;
+        }
     }
 
     private Message replyTour(String interest) {
