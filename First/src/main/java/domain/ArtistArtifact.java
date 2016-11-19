@@ -3,7 +3,7 @@ package domain;
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
-public class ArtistArtifact  extends Artifact{
+public class ArtistArtifact extends Artifact{
 
     int productionCost;
     boolean isHighQuality;

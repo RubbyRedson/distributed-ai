@@ -75,6 +75,10 @@ public class Helper {
         return names.get(random.nextInt(names.size())).trim();
     }
 
+    public Interest getRandomInterestEnum() {
+        return Interest.getRandom();
+    }
+
     public String getRandomInterest() {
         String name = "Could not find file";
         try {

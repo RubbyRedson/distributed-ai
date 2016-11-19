@@ -13,6 +13,7 @@ public class CallForProposals extends OneShotBehaviour {
 
     @Override
     public void action() {
+        //Finish the auction or not
         System.out.println("Sending messages to all the particiapting agents and receiving their responses");
     }
 
