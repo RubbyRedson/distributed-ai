@@ -4,6 +4,7 @@ import behaviours.*;
 import domain.Artifact;
 import domain.ArtistArtifact;
 import domain.OnDone;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
@@ -24,6 +25,7 @@ public class ArtistManager extends Agent implements ArtistState {
     private static final String STATE_EXIT_AUCTION = "exitAuction";
 
     private List<ArtistArtifact> allCreatedArtifacts;
+    private List<AID> auctionneers;
     private ArtistArtifact artifact;
     private int budget;
     private int currAuctionPrice;
@@ -53,7 +55,7 @@ public class ArtistManager extends Agent implements ArtistState {
         }), STATE_CREATE_ARTWORK);
 
         //Inform all that it's about to start an auction
-        fsm.registerState(new InformAuctionParticipants(new OnDone<String>() {
+        fsm.registerState(new InformAuctionParticipants(this, new OnDone<String>() {
             @Override
             public void done(String message) {
                 fsm.registerDefaultTransition(STATE_INFORMING, STATE_CALCULATE_PRICE);
@@ -74,7 +76,7 @@ public class ArtistManager extends Agent implements ArtistState {
         }), STATE_CALCULATE_PRICE);
 
         //Deal with the bidding and figure out what agents should be part of the bidding
-        fsm.registerState(new CallForProposals(new OnDone<String>() {
+        fsm.registerState(new CallForProposals(this, new OnDone<String>() {
             @Override
             public void done(String message) {
                 //If still no buyer
@@ -101,34 +103,10 @@ public class ArtistManager extends Agent implements ArtistState {
             }
         }, STATE_EXIT_AUCTION);
 
-
-
         //Flow of transitions
         fsm.registerDefaultTransition(STATE_IDLING, STATE_CREATE_ARTWORK);
 
-        //fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
-        /*
-        fsm.registerDefaultTransition(STATE_CREATE_ARTWORK, STATE_INFORMING);
-        fsm.registerDefaultTransition(STATE_INFORMING, STATE_CALCULATE_PRICE);
-
-
-        fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_CALL_FOR_PROPOSALS, 3);
-        fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_EXIT_AUCTION, 4);
-
-
-        //If still no buyer
-        fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_CALCULATE_PRICE, 1);
-
-        //If all is done
-        fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
-
-        //Restart the loop, go back to idling
-        fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
-        */
-
         addBehaviour(fsm);
-
-
         System.out.println("Artist manager");
     }
 
@@ -150,5 +128,15 @@ public class ArtistManager extends Agent implements ArtistState {
     @Override
     public int getCurrAuctionPrice() {
         return currAuctionPrice;
+    }
+
+    @Override
+    public List<AID> getAuctioneers() {
+        return auctionneers;
+    }
+
+    @Override
+    public void setAuctioneers(List<AID> auctioneers) {
+        this.auctionneers = auctioneers;
     }
 }

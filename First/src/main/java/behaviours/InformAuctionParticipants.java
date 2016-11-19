@@ -1,5 +1,6 @@
 package behaviours;
 
+import agents.ArtistState;
 import domain.OnDone;
 import jade.core.AID;
 import jade.core.behaviours.OneShotBehaviour;
@@ -20,9 +21,11 @@ public class InformAuctionParticipants extends OneShotBehaviour {
     private static final String CURATOR = "curator";
 
     private OnDone<String> onDone;
+    private ArtistState agentState;
 
-    public InformAuctionParticipants(OnDone<String> onDone){
+    public InformAuctionParticipants(ArtistState agentState, OnDone<String> onDone){
         this.onDone = onDone;
+        this.agentState = agentState;
     }
 
     @Override
@@ -39,6 +42,8 @@ public class InformAuctionParticipants extends OneShotBehaviour {
                 auctionParticipants.add(result[i].getName());
             }
 
+
+
             //Start informing all the curators that an auction is about to start
             for (int i = 0; i < auctionParticipants.size(); i++) {
                 AID currId = auctionParticipants.get(i);
@@ -51,6 +56,9 @@ public class InformAuctionParticipants extends OneShotBehaviour {
                 message.addReceiver(currId);
                 this.getAgent().send(message);
             }
+
+            //Notify the agent what auctioneers we have
+            agentState.setAuctioneers(auctionParticipants);
 
         } catch (FIPAException e) {
             e.printStackTrace();
