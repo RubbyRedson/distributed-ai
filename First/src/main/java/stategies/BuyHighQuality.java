@@ -12,7 +12,7 @@ public class BuyHighQuality implements BidderStrategy {
     private static final int UPPER_LIMIT = 2000;
     private static final int LOWER_LIMIT = 200;
     private static final int LOWEST_PRICE_FOR_HQ = 200;
-    private static final int COEFF = 10;
+    private static final int COEFF = 5;
     int ourTrueValue;
 
 

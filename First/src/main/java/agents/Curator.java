@@ -26,7 +26,7 @@ public class Curator extends Agent {
 
     private Map<String, Artifact> collection = new HashMap<>();
     DataStore store;
-    private int budget = 1000;
+    private int budget = 3000;
     private BidderStrategy strategy;
 
     private String getTour(String unparsed) {
@@ -89,6 +89,7 @@ public class Curator extends Agent {
         MsgReceiver endAuctionReceiver = new MsgReceiver(this, endAuctionTemplate, MsgReceiver.INFINITE, store, "auctionEnd"){
             @Override
             protected void handleMessage(ACLMessage msg) {
+                System.out.println("Received end message: " + msg.getContent());
                 System.out.println("Auction ended and that is acceptable");
                 budget += 250; //TODO balancing?
             }
@@ -133,12 +134,24 @@ public class Curator extends Agent {
         MsgReceiver acceptBidReceiver = new MsgReceiver(this, acceptBidTemplate, MsgReceiver.INFINITE, store, "acceptBid"){
             @Override
             protected void handleMessage(ACLMessage msg) {
-                int price = 250; //TODO parse it
+                System.out.println("Received accepted message: " + msg.getContent());
                 System.out.println("Honey! Look what I have bought! " + msg.getContent()); //dang stuff
+                int price = parsePrice(msg.getContent());
                 budget -= price;
             }
         };
         addBehaviour(acceptBidReceiver);
+    }
+
+    private int parsePrice(String content) {
+        String price = content.substring(content.indexOf("\nPrice:") + "\nPrice:".length());
+        try {
+            int result = Integer.valueOf(price);
+            return result;
+        } catch (NumberFormatException e) {
+            System.out.println(price + " is not a valid price!");
+        }
+        return 0;
     }
 
     private void addCFPMsgReceiver() {
@@ -155,7 +168,9 @@ public class Curator extends Agent {
         MsgReceiver cfpReceiver = new MsgReceiver(this, cfpTemplate, MsgReceiver.INFINITE, store, "cfp"){
             @Override
             protected void handleMessage(ACLMessage msg) {
+                System.out.println("Received cfp message: " + msg.getContent());
                 ACLMessage reply = msg.createReply();
+                reply.setInReplyTo(msg.getReplyWith());
                 String currentPrice = msg.getContent();
                 boolean propose = computeProposal(currentPrice);
 
@@ -188,8 +203,10 @@ public class Curator extends Agent {
         MsgReceiver startAuctionReceiver = new MsgReceiver(this, startAuctionTemplate, MsgReceiver.INFINITE, store, "startAuction"){
             @Override
             protected void handleMessage(ACLMessage msg) {
+                System.out.println("Received start message: " + msg.getContent());
                 selectStrategy();
                 ACLMessage reply = msg.createReply();
+                reply.setInReplyTo(msg.getReplyWith());
                 reply.setLanguage("English");
                 reply.setOntology("auction");
                 reply.setSender(this.getAgent().getAID());

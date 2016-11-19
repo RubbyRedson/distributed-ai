@@ -39,13 +39,14 @@ public class CallForProposals extends OneShotBehaviour {
         onDone.done("mock done");
     }
 
-    private void startMessageLoop(){
+    private void startMessageLoop(){ //TODO doesn't seem to send cfp for the second round (no one proposed). works fine with 1 round though
         //Start listening for messages
         while(true){
             ACLMessage msg = myAgent.receive();
             if (msg != null ) {
+                System.out.println("Atrist manager received: " + msg);
                 if(msg.getInReplyTo() != null && msg.getInReplyTo().equalsIgnoreCase(getMessageId())){
-                    if(msg.getContent().equalsIgnoreCase("propose")){
+                    if(msg.getPerformative() == ACLMessage.PROPOSE){
                         // We have a winner
                         exitCondition = 2;
                         auctionWinner = msg.getSender();
@@ -110,7 +111,7 @@ public class CallForProposals extends OneShotBehaviour {
 
     private ACLMessage getWinnerMessage(){
         ACLMessage message = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-        message.setContent(agentState.getArtifact() + "");
+        message.setContent(agentState.getArtifact() + "\nPrice:" + agentState.getCurrAuctionPrice());
         message.setLanguage("English");
         message.setOntology("auction");
         message.setSender(this.getAgent().getAID());

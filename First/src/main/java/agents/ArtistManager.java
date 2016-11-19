@@ -8,9 +8,14 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import stategies.AuctioneerStrategy;
+import stategies.SellHighQuality;
+import stategies.SellLowQuality;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by victoraxelsson on 2016-11-19.
@@ -24,16 +29,20 @@ public class ArtistManager extends Agent implements ArtistState {
     private static final String STATE_CALL_FOR_PROPOSALS = "callForProposals";
     private static final String STATE_EXIT_AUCTION = "exitAuction";
 
+    private static final int INITIAL_BUDGET = 3000;
+
     private List<ArtistArtifact> allCreatedArtifacts;
     private List<AID> auctionneers;
     private ArtistArtifact artifact;
     private int budget;
     private int currAuctionPrice;
+    private AuctioneerStrategy strategy;
+    private Random random = new SecureRandom();
 
     @Override
     protected void setup() {
 
-        budget = 10000;
+        budget = INITIAL_BUDGET;
         currAuctionPrice = -1;
         allCreatedArtifacts = new ArrayList<>();
 
@@ -91,6 +100,7 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerState(new OneShotBehaviour(this){
             @Override
             public void action() {
+                //TODO notify every participant about end of auction with the message of type: INFORM and content: Auction ended
                 System.out.println("exiting");
                 //Set new budget,
 
@@ -143,5 +153,21 @@ public class ArtistManager extends Agent implements ArtistState {
     @Override
     public void setAuctioneers(List<AID> auctioneers) {
         this.auctionneers = auctioneers;
+    }
+
+    @Override
+    public AuctioneerStrategy getAgentStrategy() {
+        return strategy;
+    }
+
+    @Override
+    public void setAgentStrategy() {
+        if (random.nextFloat() > 0.5f) {
+            System.out.println("Auctioneer chose sellHigh strategy");
+            strategy = new SellHighQuality();
+        } else {
+            System.out.println("Auctioneer chose sellLow strategy");
+            strategy = new SellLowQuality();
+        }
     }
 }

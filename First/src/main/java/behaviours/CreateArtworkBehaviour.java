@@ -15,8 +15,8 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
 
     private OnDone<ArtistArtifact> onDone;
 
-    private static final int HIGH_QUALITY_COST = 3000;
-    private static final int LOW_QUALITY_COST = 500;
+    private static final int HIGH_QUALITY_COST = 600;
+    private static final int LOW_QUALITY_COST = 100;
 
     private ArtistState agentState;
 
@@ -25,15 +25,11 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
         this.agentState = agentState;
     }
 
-    private boolean createHighQualityProduct(){
-        return agentState.getBudget() > 1000;
-    }
-
     @Override
     public void action() {
-
+        agentState.setAgentStrategy();
         ArtistArtifact artifact = null;
-        if(createHighQualityProduct()){
+        if(agentState.getAgentStrategy().createHighPrice(agentState.getBudget())){
              artifact = new ArtistArtifact(HIGH_QUALITY_COST, true, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
         }else{
              artifact = new ArtistArtifact(LOW_QUALITY_COST, false, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());

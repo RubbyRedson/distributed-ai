@@ -7,4 +7,5 @@ import domain.ArtistArtifact;
  */
 public interface AuctioneerStrategy {
     int setPrice(ArtistArtifact item, int budget);
+    boolean createHighPrice(int budget);
 }
