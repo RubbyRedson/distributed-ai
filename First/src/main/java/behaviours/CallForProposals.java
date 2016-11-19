@@ -58,17 +58,18 @@ public class CallForProposals extends OneShotBehaviour {
 
                     msgCounter ++;
                 }
+
+                if(msgCounter >= agentState.getAuctioneers().size()){
+                    //Terminate the message loop, no one want this crappy piece of art
+                    break;
+                }
             }
 
-            if(msgCounter >= agentState.getAuctioneers().size()){
-                //Terminate the message loop, no one want this crappy piece of art
-                break;
-            }
         }
     }
 
     private String getMessageContent(){
-        return "price;"+agentState.getCurrAuctionPrice();
+        return agentState.getCurrAuctionPrice() + "";
     }
 
     private String getMessageId(){
@@ -109,7 +110,7 @@ public class CallForProposals extends OneShotBehaviour {
 
     private ACLMessage getWinnerMessage(){
         ACLMessage message = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-        message.setContent("won:" + agentState.getArtifact());
+        message.setContent(agentState.getArtifact() + "");
         message.setLanguage("English");
         message.setOntology("auction");
         message.setSender(this.getAgent().getAID());
