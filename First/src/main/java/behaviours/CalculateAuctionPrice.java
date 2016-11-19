@@ -1,6 +1,8 @@
 package behaviours;
 
+import agents.ArtistState;
 import domain.Artifact;
+import domain.ArtistArtifact;
 import domain.Interest;
 import domain.OnDone;
 import jade.core.behaviours.OneShotBehaviour;
@@ -9,22 +11,44 @@ import jade.core.behaviours.OneShotBehaviour;
  * Created by victoraxelsson on 2016-11-19.
  */
 public class CalculateAuctionPrice extends OneShotBehaviour {
-
-    private Artifact artifact;
-    private int budget;
     private OnDone<Integer> onDone;
+    private ArtistState agentState;
+    int currAuctionPrice;
 
-    public CalculateAuctionPrice(Artifact artifact, int budget, OnDone<Integer> onDone){
-        this.artifact = artifact;
-        this.budget = budget;
+    private static final int priceReduction = 100;
+
+    private int exitState;
+
+    public CalculateAuctionPrice(ArtistState agentState, OnDone<Integer> onDone){
+        this.agentState = agentState;
         this.onDone = onDone;
+        exitState = 3;
     }
 
     @Override
     public void action() {
-        System.out.println("Not implemented yet. I'm just giving it a hardcoded value");
-        onDone.done(new Integer(1000));
+
+        currAuctionPrice = agentState.getCurrAuctionPrice();
+
+        //There is no price yet
+        if (agentState.getCurrAuctionPrice() <= 0) {
+            currAuctionPrice = 10000;
+        }else{
+
+            if(currAuctionPrice - priceReduction > agentState.getArtifact().getProductionCost()){
+                currAuctionPrice -=priceReduction;
+            }else{
+                //I canno go lower than my production cost :(
+                System.out.println("Sorry, I cannot go lower than my production cost");
+                exitState = 4;
+            }
+        }
+
+        onDone.done(new Integer(currAuctionPrice));
     }
 
-
+    @Override
+    public int onEnd() {
+        return exitState;
+    }
 }

@@ -19,6 +19,12 @@ public class InformAuctionParticipants extends OneShotBehaviour {
 
     private static final String CURATOR = "curator";
 
+    private OnDone<String> onDone;
+
+    public InformAuctionParticipants(OnDone<String> onDone){
+        this.onDone = onDone;
+    }
+
     @Override
     public void action() {
         DFAgentDescription template = new DFAgentDescription();
@@ -49,6 +55,8 @@ public class InformAuctionParticipants extends OneShotBehaviour {
         } catch (FIPAException e) {
             e.printStackTrace();
         }
+
+        onDone.done("Done with informing");
     }
 
     public String getMessage() {

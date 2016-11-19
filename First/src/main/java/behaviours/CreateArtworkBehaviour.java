@@ -1,5 +1,6 @@
 package behaviours;
 
+import agents.ArtistState;
 import domain.*;
 import jade.core.behaviours.OneShotBehaviour;
 
@@ -13,19 +14,19 @@ import static jade.core.Runtime.getDate;
 public class CreateArtworkBehaviour extends OneShotBehaviour {
 
     private OnDone<ArtistArtifact> onDone;
-    private int budget;
 
     private static final int HIGH_QUALITY_COST = 3000;
     private static final int LOW_QUALITY_COST = 500;
 
+    private ArtistState agentState;
 
-    public CreateArtworkBehaviour(int budget, OnDone<ArtistArtifact> onDone){
+    public CreateArtworkBehaviour(ArtistState agentState, OnDone<ArtistArtifact> onDone){
         this.onDone = onDone;
-        this.budget = budget;
+        this.agentState = agentState;
     }
 
     private boolean createHighQualityProduct(){
-        return budget > 1000;
+        return agentState.getBudget() > 1000;
     }
 
     @Override
@@ -39,10 +40,6 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
         }
 
         onDone.done(artifact);
-    }
-
-    public Interest getInterestType() {
-        return Interest.Cabbage;
     }
 
 }

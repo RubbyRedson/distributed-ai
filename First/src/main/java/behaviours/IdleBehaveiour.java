@@ -18,6 +18,7 @@ public class IdleBehaveiour extends OneShotBehaviour {
 
     @Override
     public void action() {
+        System.out.println("Idling");
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {

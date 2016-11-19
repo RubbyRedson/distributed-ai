@@ -1,5 +1,6 @@
 package behaviours;
 
+import domain.OnDone;
 import jade.core.behaviours.OneShotBehaviour;
 
 /**
@@ -7,14 +8,17 @@ import jade.core.behaviours.OneShotBehaviour;
  */
 public class CallForProposals extends OneShotBehaviour {
 
-    public CallForProposals(){
+    OnDone<String> onDone;
 
+    public CallForProposals( OnDone<String> onDone){
+        this.onDone = onDone;
     }
 
     @Override
     public void action() {
         //Finish the auction or not
         System.out.println("Sending messages to all the particiapting agents and receiving their responses");
+        onDone.done("mock done");
     }
 
     @Override
