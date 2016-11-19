@@ -1,31 +1,48 @@
 package behaviours;
 
-import domain.Artifact;
-import domain.Interest;
-import domain.OnDone;
+import domain.*;
 import jade.core.behaviours.OneShotBehaviour;
 
 import java.util.Date;
+
+import static jade.core.Runtime.getDate;
 
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
 public class CreateArtworkBehaviour extends OneShotBehaviour {
 
-    private OnDone<Artifact> onDone;
+    private OnDone<ArtistArtifact> onDone;
     private int budget;
 
-    public CreateArtworkBehaviour(int budget, OnDone<Artifact> onDone){
+    private static final int HIGH_QUALITY_COST = 3000;
+    private static final int LOW_QUALITY_COST = 500;
+
+
+    public CreateArtworkBehaviour(int budget, OnDone<ArtistArtifact> onDone){
         this.onDone = onDone;
         this.budget = budget;
+    }
 
+    private boolean createHighQualityProduct(){
+        return budget > 1000;
     }
 
     @Override
     public void action() {
 
+        ArtistArtifact artifact = null;
+        if(createHighQualityProduct()){
+             artifact = new ArtistArtifact(HIGH_QUALITY_COST, true, getInterestType(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
+        }else{
+             artifact = new ArtistArtifact(LOW_QUALITY_COST, true, getInterestType(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
+        }
 
-        System.out.println("Creating some kind of artwork. Its not implemented yet");
-        onDone.done(new Artifact(Interest.Cabbage, "Cabbage boi", "BiggieMcNasty", "2016-09-10"));
+        onDone.done(artifact);
     }
+
+    public Interest getInterestType() {
+        return Interest.Cabbage;
+    }
+
 }

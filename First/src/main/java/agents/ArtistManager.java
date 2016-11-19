@@ -2,10 +2,14 @@ package agents;
 
 import behaviours.*;
 import domain.Artifact;
+import domain.ArtistArtifact;
 import domain.OnDone;
 import jade.core.Agent;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by victoraxelsson on 2016-11-19.
@@ -19,7 +23,8 @@ public class ArtistManager extends Agent {
     private static final String STATE_CALL_FOR_PROPOSALS = "callForProposals";
     private static final String STATE_EXIT_AUCTION = "exitAuction";
 
-    private Artifact artifact;
+    private List<ArtistArtifact> allCreatedArtifacts;
+    private ArtistArtifact artifact;
     private int budget;
     private int currAuctionPrice;
 
@@ -28,6 +33,7 @@ public class ArtistManager extends Agent {
 
         budget = 10000;
         currAuctionPrice = -1;
+        allCreatedArtifacts = new ArrayList<>();
 
         FSMBehaviour fsm = new FSMBehaviour(this);
 
@@ -35,9 +41,9 @@ public class ArtistManager extends Agent {
         fsm.registerFirstState(new IdleBehaveiour(), STATE_IDLING);
 
         //Create a new artifact
-        fsm.registerState(new CreateArtworkBehaviour(budget, new OnDone<Artifact>() {
+        fsm.registerState(new CreateArtworkBehaviour(budget, new OnDone<ArtistArtifact>() {
             @Override
-            public void done(Artifact _artifact) {
+            public void done(ArtistArtifact _artifact) {
                 artifact = _artifact;
             }
         }), STATE_CREATE_ARTWORK);
@@ -62,6 +68,8 @@ public class ArtistManager extends Agent {
             public void action() {
                 System.out.println("exiting");
                 //Set new budget,
+
+                allCreatedArtifacts.add(artifact);
                 artifact = null;
                 currAuctionPrice = -1;
             }
