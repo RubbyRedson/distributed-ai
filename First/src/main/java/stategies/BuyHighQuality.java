@@ -9,14 +9,17 @@ import java.util.Random;
 public class BuyHighQuality implements BidderStrategy {
     float highQualityProbability = 0.5f;
     Random random = new SecureRandom();
-
+    private static final int UPPER_LIMIT = 2000;
+    private static final int LOWER_LIMIT = 200;
+    private static final int LOWEST_PRICE_FOR_HQ = 200;
+    private static final int COEFF = 10;
     int ourTrueValue;
 
 
     @Override
     public boolean propose(int price, int budget) {
         if (price > budget) return false;
-        ourTrueValue = budget > 2000 ? 200 : budget / 10;
+        ourTrueValue = budget > UPPER_LIMIT ? LOWER_LIMIT : budget / COEFF;
         boolean highQuality = determineQuality(price);
         System.out.println("BuyHigh: Our true value is " + ourTrueValue + ", price is " + price +
                 ". High quality is " + highQuality);
@@ -24,7 +27,7 @@ public class BuyHighQuality implements BidderStrategy {
     }
 
     private boolean determineQuality(int price) {
-        if (price < 200) return false; //probably low quality
+        if (price < LOWEST_PRICE_FOR_HQ) return false; //probably low quality
         return random.nextFloat() > highQualityProbability; // 50/50 here
     }
 }
