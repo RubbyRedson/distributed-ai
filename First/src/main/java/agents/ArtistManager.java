@@ -131,6 +131,11 @@ public class ArtistManager extends Agent implements ArtistState {
     }
 
     @Override
+    public void onSoldArtifact() {
+        budget += currAuctionPrice;
+    }
+
+    @Override
     public List<AID> getAuctioneers() {
         return auctionneers;
     }

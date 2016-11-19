@@ -12,6 +12,7 @@ public interface ArtistState {
     int getBudget();
     int getCurrAuctionPrice();
 
+    void onSoldArtifact();
     List<AID> getAuctioneers();
     void setAuctioneers(List<AID> auctioneers);
     //void setCurrAuctionPrice(int newPrice);

@@ -132,6 +132,8 @@ public class CallForProposals extends OneShotBehaviour {
             //notify the winner
             ACLMessage acceptMessage = getWinnerMessage();
             getAgent().send(acceptMessage);
+
+            agentState.onSoldArtifact(agentState.getArtifact());
         }
 
         return exitCondition;
