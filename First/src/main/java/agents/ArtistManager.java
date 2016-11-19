@@ -26,6 +26,8 @@ public class ArtistManager extends Agent {
     @Override
     protected void setup() {
 
+        budget = 10000;
+        currAuctionPrice = -1;
 
         FSMBehaviour fsm = new FSMBehaviour(this);
 
@@ -33,7 +35,7 @@ public class ArtistManager extends Agent {
         fsm.registerFirstState(new IdleBehaveiour(), STATE_IDLING);
 
         //Create a new artifact
-        fsm.registerState(new CreateArtworkBehaviour(new OnDone<Artifact>() {
+        fsm.registerState(new CreateArtworkBehaviour(budget, new OnDone<Artifact>() {
             @Override
             public void done(Artifact _artifact) {
                 artifact = _artifact;
@@ -79,8 +81,6 @@ public class ArtistManager extends Agent {
 
         //Restart the loop, go back to idling
         fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
-
-
 
         addBehaviour(fsm);
 
