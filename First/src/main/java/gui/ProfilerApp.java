@@ -96,7 +96,6 @@ public class ProfilerApp extends Application {
         });
     }
 
-
     public void setOnInput(OnInput onInput) {
         this.onInput = onInput;
     }
