@@ -1,7 +1,10 @@
 package domain;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -9,20 +12,41 @@ import java.util.Scanner;
  * Created by victoraxelsson on 2016-11-19.
  */
 public class Helper {
+    private List<String> names = new ArrayList<>();
 
     private static Helper instance;
-    Random rand;
+    private SecureRandom random;
 
     private Helper(){
-        rand = new Random();
+        random = new SecureRandom();
     }
 
     public static Helper getHelper(){
         if(instance == null){
             instance = new Helper();
+            try {
+                instance.readNames();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         return instance;
+    }
+
+    private void readNames() throws IOException {
+        String line;
+        ClassLoader classLoader = getClass().getClassLoader();
+        File fi = new File(classLoader.getResource("names.txt").getFile());
+        try (
+                InputStream fis = new FileInputStream(fi);
+                InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+                BufferedReader br = new BufferedReader(isr);
+        ) {
+            while ((line = br.readLine()) != null) {
+                names.add(line);
+            }
+        }
     }
 
     /*
@@ -47,14 +71,8 @@ public class Helper {
     }
 
     public String getRandomName() {
-        String name = "Could not find file";
-        try {
-            String s = choose(new File("names.txt"));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return name;
+        if (names == null || names.size() == 0) return "Victor";
+        return names.get(random.nextInt(names.size())).trim();
     }
 
     public String getRandomInterest() {
@@ -67,6 +85,4 @@ public class Helper {
 
         return name;
     }
-
-
 }
