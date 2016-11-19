@@ -13,6 +13,9 @@ import jade.lang.acl.MessageTemplate;
 import jade.proto.states.MsgReceiver;
 import messages.Message;
 import messages.MessageType;
+import stategies.BidderStrategy;
+import stategies.BuyHighQuality;
+import stategies.BuyLowQuality;
 
 import java.util.*;
 
@@ -24,6 +27,7 @@ public class Curator extends Agent {
     private Map<String, Artifact> collection = new HashMap<>();
     DataStore store;
     private int budget = 1000;
+    private BidderStrategy strategy;
 
     private String getTour(String unparsed) {
         Interest interest = Interest.valueOf(unparsed);
@@ -184,6 +188,7 @@ public class Curator extends Agent {
         MsgReceiver startAuctionReceiver = new MsgReceiver(this, startAuctionTemplate, MsgReceiver.INFINITE, store, "startAuction"){
             @Override
             protected void handleMessage(ACLMessage msg) {
+                selectStrategy();
                 ACLMessage reply = msg.createReply();
                 reply.setLanguage("English");
                 reply.setOntology("auction");
@@ -245,6 +250,15 @@ public class Curator extends Agent {
         };
 
         addBehaviour(infoRequest);
+    }
+
+    private void selectStrategy() {
+        if (budget < 500) {
+            System.out.println(this.getAID() + " selected BuyLow strategy");
+            strategy = new BuyLowQuality();
+        }
+        System.out.println(this.getAID() + " selected BuyHigh strategy");
+        strategy = new BuyHighQuality();
     }
 
     private boolean computeProposal(String price) {
