@@ -189,6 +189,7 @@ public class Curator extends Agent {
                 if (propose) {
                     reply.setPerformative(ACLMessage.PROPOSE);
                 }else{
+                    System.out.println("I think the price is too high");
                     reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
                 }
 
