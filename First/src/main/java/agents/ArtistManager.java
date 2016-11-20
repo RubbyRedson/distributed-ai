@@ -165,7 +165,7 @@ public class ArtistManager extends Agent implements ArtistState {
 
     @Override
     public void setAgentStrategy() {
-        if (random.nextFloat() > 0.5f) {
+        if (budget > ArtistArtifact.HIGH_QUALITY_COST) {
             System.out.println("Auctioneer chose sellHigh strategy");
             strategy = new SellHighQuality();
         } else {

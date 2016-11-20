@@ -15,9 +15,6 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
 
     private OnDone<ArtistArtifact> onDone;
 
-    private static final int HIGH_QUALITY_COST = 1000;
-    private static final int LOW_QUALITY_COST = 100;
-
     private int exitCondition;
 
 
@@ -35,9 +32,9 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
         ArtistArtifact artifact = null;
 
         if(agentState.getAgentStrategy().createHighPrice(agentState.getBudget())){
-             artifact = new ArtistArtifact(HIGH_QUALITY_COST, true, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
+             artifact = new ArtistArtifact(ArtistArtifact.HIGH_QUALITY_COST, true, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
         }else{
-             artifact = new ArtistArtifact(LOW_QUALITY_COST, false, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
+             artifact = new ArtistArtifact(ArtistArtifact.LOW_QUALITY_COST, false, Helper.getHelper().getRandomInterestEnum(), Helper.getHelper().getRandomName(), Helper.getHelper().getRandomName(), getDate());
         }
 
         if(artifact.getProductionCost() > agentState.getBudget()){
