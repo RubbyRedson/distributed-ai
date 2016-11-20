@@ -45,7 +45,7 @@ public class CalculateAuctionPrice extends OneShotBehaviour {
             }
         }
 
-        onDone.done(new Integer(currAuctionPrice));
+        onDone.done(currAuctionPrice);
     }
 
     @Override

@@ -29,7 +29,7 @@ public class ArtistManager extends Agent implements ArtistState {
     private static final String STATE_CALL_FOR_PROPOSALS = "callForProposals";
     private static final String STATE_EXIT_AUCTION = "exitAuction";
 
-    private static final int INITIAL_BUDGET = 3000;
+    private static final int INITIAL_BUDGET = 2000;
 
     private List<ArtistArtifact> allCreatedArtifacts;
     private List<AID> auctionneers;
@@ -102,8 +102,7 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerState(new OneShotBehaviour(this){
             @Override
             public void action() {
-                //TODO notify every participant about end of auction with the message of type: INFORM and content: Auction ended
-                System.out.println("exiting the auction. Budget: " + budget);
+                System.out.println("Exiting the auction. Budget: " + budget);
                 //Set new budget,
 
                 if(artifact != null){

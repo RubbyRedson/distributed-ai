@@ -41,7 +41,6 @@ public class InformAuctionParticipants extends OneShotBehaviour {
             for (int i = 0; i < result.length; ++i) {
                 auctionParticipants.add(result[i].getName());
             }
-            //TODO second auction kinda dies here - no idea why, this is the last message from it
             System.out.println("Participats: " + auctionParticipants.toString());
 
 

@@ -15,7 +15,7 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
 
     private OnDone<ArtistArtifact> onDone;
 
-    private static final int HIGH_QUALITY_COST = 600;
+    private static final int HIGH_QUALITY_COST = 1000;
     private static final int LOW_QUALITY_COST = 100;
 
     private int exitCondition;

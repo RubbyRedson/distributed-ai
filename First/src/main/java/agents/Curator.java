@@ -26,8 +26,10 @@ public class Curator extends Agent {
 
     private Map<String, Artifact> collection = new HashMap<>();
     DataStore store;
-    private int budget = 3000;
+    private int budget = INITIAL;
     private BidderStrategy strategy;
+    private static final int END_OF_AUCTION_GAIN = 250;
+    private static final int INITIAL = 1500;
 
     private String getTour(String unparsed) {
         Interest interest = Interest.valueOf(unparsed);
@@ -89,9 +91,8 @@ public class Curator extends Agent {
         MsgReceiver endAuctionReceiver = new MsgReceiver(this, endAuctionTemplate, MsgReceiver.INFINITE, store, "auctionEnd"){
             @Override
             protected void handleMessage(ACLMessage msg) {
-                System.out.println("Received end message: " + msg.getContent());
-                System.out.println("Auction ended and that is acceptable");
-                budget += 250; //TODO balancing?
+                budget += END_OF_AUCTION_GAIN;
+                System.out.println(this.getAgent().getLocalName() + " has budget " + budget);
 
                 //Restart listener
                 addEndAuctionMsgReceiver();
@@ -116,8 +117,6 @@ public class Curator extends Agent {
         MsgReceiver rejectBidReceiver = new MsgReceiver(this, rejectBidTemplate, MsgReceiver.INFINITE, store, "rejectBid"){
             @Override
             protected void handleMessage(ACLMessage msg) {
-                System.out.println("Foiled again! I was too late!"); //bid was rejected
-
                 //restart listener
                 addBidRejectedMsgReceiver();
             }
@@ -140,8 +139,7 @@ public class Curator extends Agent {
         MsgReceiver acceptBidReceiver = new MsgReceiver(this, acceptBidTemplate, MsgReceiver.INFINITE, store, "acceptBid"){
             @Override
             protected void handleMessage(ACLMessage msg) {
-                System.out.println("Received accepted message: " + msg.getContent());
-                System.out.println("Honey! Look what I have bought! " + msg.getContent()); //dang stuff
+                System.out.println(getLocalName() + " bought " + msg.getContent());
                 int price = parsePrice(msg.getContent());
                 budget -= price;
 
@@ -177,7 +175,7 @@ public class Curator extends Agent {
         MsgReceiver cfpReceiver = new MsgReceiver(this, cfpTemplate, MsgReceiver.INFINITE, store, "cfp"){
             @Override
             protected void handleMessage(ACLMessage msg) {
-                System.out.println("Received cfp message: " + msg.getContent());
+                System.out.println(this.getAgent().getLocalName() + " received cfp message: " + msg.getContent());
                 ACLMessage reply = msg.createReply();
                 reply.setInReplyTo(msg.getReplyWith());
                 String currentPrice = msg.getContent();
@@ -189,7 +187,7 @@ public class Curator extends Agent {
                 if (propose) {
                     reply.setPerformative(ACLMessage.PROPOSE);
                 }else{
-                    System.out.println("I think the price is too high");
+                    System.out.println(this.getAgent().getLocalName() + " thinks the price is too high");
                     reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
                 }
 
@@ -210,7 +208,7 @@ public class Curator extends Agent {
             public boolean match(ACLMessage msg) {
                 if (msg.getPerformative() == ACLMessage.INFORM && Objects.equals(msg.getOntology(), "auction") &&
                         Objects.equals(msg.getContent(), "A new action is about to start. Pick out your wallet")) {
-                        System.out.println("CuratorBudget:" + budget);
+                        System.out.println(getLocalName() + " budget is " + budget);
                     return true;
                 }
                 return false;
@@ -220,7 +218,7 @@ public class Curator extends Agent {
         MsgReceiver startAuctionReceiver = new MsgReceiver(this, startAuctionTemplate, MsgReceiver.INFINITE, store, "startAuction"){
             @Override
             protected void handleMessage(ACLMessage msg) {
-                System.out.println("Received start message: " + msg.getContent());
+                System.out.println(getLocalName() + " received start message");
                 selectStrategy();
                 ACLMessage reply = msg.createReply();
                 reply.setInReplyTo(msg.getReplyWith());
