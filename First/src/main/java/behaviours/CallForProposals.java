@@ -135,9 +135,10 @@ public class CallForProposals extends OneShotBehaviour {
             getAgent().send(acceptMessage);
 
             agentState.onSoldArtifact();
+        }else{
+            System.out.println("No buyer, lowering price");
         }
 
-        System.out.println("ExitingCondition:" + exitCondition);
 
         return exitCondition;
     }

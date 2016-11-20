@@ -39,7 +39,7 @@ public class CalculateAuctionPrice extends OneShotBehaviour {
             if(currAuctionPrice - priceReduction > agentState.getArtifact().getProductionCost()){
                 currAuctionPrice -=priceReduction;
             }else{
-                //I canno go lower than my production cost :(
+                //I cannot go lower than my production cost :(
                 System.out.println("Sorry, I cannot go lower than my production cost");
                 exitState = 4;
             }

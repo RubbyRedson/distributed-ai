@@ -56,7 +56,11 @@ public class ArtistManager extends Agent implements ArtistState {
             @Override
             public void done(ArtistArtifact _artifact) {
                 artifact = _artifact;
-                fsm.registerDefaultTransition(STATE_CREATE_ARTWORK, STATE_INFORMING);
+
+                fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_INFORMING, 5);
+
+                //The artist manager is bankrupt
+                fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_EXIT_AUCTION, 6);
             }
         }), STATE_CREATE_ARTWORK);
 
@@ -102,8 +106,11 @@ public class ArtistManager extends Agent implements ArtistState {
                 System.out.println("exiting the auction. Budget: " + budget);
                 //Set new budget,
 
-                allCreatedArtifacts.add(artifact);
-                budget -= artifact.getProductionCost();
+                if(artifact != null){
+                    allCreatedArtifacts.add(artifact);
+                    budget -= artifact.getProductionCost();
+                }
+
                 artifact = null;
                 currAuctionPrice = -1;
 
