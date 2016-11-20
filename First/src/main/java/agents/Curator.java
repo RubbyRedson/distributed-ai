@@ -182,14 +182,17 @@ public class Curator extends Agent {
                 reply.setInReplyTo(msg.getReplyWith());
                 String currentPrice = msg.getContent();
                 boolean propose = computeProposal(currentPrice);
+                reply.setLanguage("English");
+                reply.setOntology("auction");
+                reply.setSender(this.getAgent().getAID());
 
                 if (propose) {
-                    reply.setLanguage("English");
-                    reply.setOntology("auction");
-                    reply.setSender(this.getAgent().getAID());
                     reply.setPerformative(ACLMessage.PROPOSE);
-                    this.getAgent().send(reply);
+                }else{
+                    reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
                 }
+
+                this.getAgent().send(reply);
 
                 //Restart the listener
                 addCFPMsgReceiver();
@@ -206,6 +209,7 @@ public class Curator extends Agent {
             public boolean match(ACLMessage msg) {
                 if (msg.getPerformative() == ACLMessage.INFORM && Objects.equals(msg.getOntology(), "auction") &&
                         Objects.equals(msg.getContent(), "A new action is about to start. Pick out your wallet")) {
+                        System.out.println("CuratorBudget:" + budget);
                     return true;
                 }
                 return false;

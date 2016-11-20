@@ -45,7 +45,6 @@ public class CallForProposals extends OneShotBehaviour {
         while(true){
             ACLMessage msg = myAgent.receive();
             if (msg != null ) {
-                System.out.println("Atrist manager received: " + msg);
                 if(msg.getInReplyTo() != null && msg.getInReplyTo().equalsIgnoreCase(getMessageId())){
                     if(msg.getPerformative() == ACLMessage.PROPOSE){
                         // We have a winner
@@ -53,7 +52,7 @@ public class CallForProposals extends OneShotBehaviour {
                         auctionWinner = msg.getSender();
                         break;
 
-                    }else if(msg.getContent().equalsIgnoreCase("not_understood")){
+                    }else if(msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD){
                         //continue,
                         //remove from list?
                     }

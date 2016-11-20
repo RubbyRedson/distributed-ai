@@ -55,7 +55,6 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerState(new CreateArtworkBehaviour(this, new OnDone<ArtistArtifact>() {
             @Override
             public void done(ArtistArtifact _artifact) {
-                System.out.println("I created a new artwork");
                 artifact = _artifact;
                 fsm.registerDefaultTransition(STATE_CREATE_ARTWORK, STATE_INFORMING);
             }
@@ -65,7 +64,6 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerState(new InformAuctionParticipants(this, new OnDone<String>() {
             @Override
             public void done(String message) {
-                System.out.println("done informing");
                 fsm.registerDefaultTransition(STATE_INFORMING, STATE_CALCULATE_PRICE);
             }
         }), STATE_INFORMING);
@@ -76,7 +74,6 @@ public class ArtistManager extends Agent implements ArtistState {
             @Override
             public void done(Integer newAuctionPrice) {
                 currAuctionPrice = newAuctionPrice;
-                System.out.println("Im done giving it a auction price");
 
                 fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_CALL_FOR_PROPOSALS, 3);
                 fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_EXIT_AUCTION, 4);
@@ -88,8 +85,6 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerState(new CallForProposals(this, new OnDone<String>() {
             @Override
             public void done(String message) {
-
-                System.out.println("I'm done with the CFP");
 
                 //If still no buyer
                 fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_CALCULATE_PRICE, 1);
@@ -104,7 +99,7 @@ public class ArtistManager extends Agent implements ArtistState {
             @Override
             public void action() {
                 //TODO notify every participant about end of auction with the message of type: INFORM and content: Auction ended
-                System.out.println("exiting");
+                System.out.println("exiting the auction. Budget: " + budget);
                 //Set new budget,
 
                 allCreatedArtifacts.add(artifact);
