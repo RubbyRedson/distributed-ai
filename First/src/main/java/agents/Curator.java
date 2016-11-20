@@ -291,11 +291,12 @@ public class Curator extends Agent {
 
     private void selectStrategy() {
         if (budget < 500) {
-            System.out.println(this.getAID() + " selected BuyLow strategy");
+            System.out.println(this.getAID().getLocalName() + " selected BuyLow strategy");
             strategy = new BuyLowQuality();
+        }else{
+            System.out.println(this.getAID().getLocalName() + " selected BuyHigh strategy");
+            strategy = new BuyHighQuality();
         }
-        System.out.println(this.getAID() + " selected BuyHigh strategy");
-        strategy = new BuyHighQuality();
     }
 
     private boolean computeProposal(String price) {
