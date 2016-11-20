@@ -41,6 +41,7 @@ public class CallForProposals extends OneShotBehaviour {
 
     private void startMessageLoop(){ //TODO doesn't seem to send cfp for the second round (no one proposed). works fine with 1 round though
         //Start listening for messages
+
         while(true){
             ACLMessage msg = myAgent.receive();
             if (msg != null ) {
@@ -136,6 +137,8 @@ public class CallForProposals extends OneShotBehaviour {
 
             agentState.onSoldArtifact();
         }
+
+        System.out.println("ExitingCondition:" + exitCondition);
 
         return exitCondition;
     }

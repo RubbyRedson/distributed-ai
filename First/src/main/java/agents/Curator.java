@@ -92,6 +92,9 @@ public class Curator extends Agent {
                 System.out.println("Received end message: " + msg.getContent());
                 System.out.println("Auction ended and that is acceptable");
                 budget += 250; //TODO balancing?
+
+                //Restart listener
+                addEndAuctionMsgReceiver();
             }
         };
         addBehaviour(endAuctionReceiver);
@@ -114,6 +117,9 @@ public class Curator extends Agent {
             @Override
             protected void handleMessage(ACLMessage msg) {
                 System.out.println("Foiled again! I was too late!"); //bid was rejected
+
+                //restart listener
+                addBidRejectedMsgReceiver();
             }
         };
         addBehaviour(rejectBidReceiver);
@@ -138,6 +144,9 @@ public class Curator extends Agent {
                 System.out.println("Honey! Look what I have bought! " + msg.getContent()); //dang stuff
                 int price = parsePrice(msg.getContent());
                 budget -= price;
+
+                //restart the listener
+                addBidAcceptedMsgReceiver();
             }
         };
         addBehaviour(acceptBidReceiver);
@@ -181,6 +190,9 @@ public class Curator extends Agent {
                     reply.setPerformative(ACLMessage.PROPOSE);
                     this.getAgent().send(reply);
                 }
+
+                //Restart the listener
+                addCFPMsgReceiver();
             }
         };
         addBehaviour(cfpReceiver);
@@ -213,6 +225,9 @@ public class Curator extends Agent {
                 reply.setPerformative(ACLMessage.CONFIRM);
                 reply.setContent("Boy am I ready");
                 this.getAgent().send(reply);
+
+                //Restart the listener
+                addStartAuctionMsgReceiver();
             }
         };
         addBehaviour(startAuctionReceiver);
