@@ -1,12 +1,13 @@
 package queens;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Nick on 11/22/2016.
  */
-public class Board {
+public class Board implements Serializable {
     private int side;
     private List<List<Integer>> columns = new ArrayList<>();
 
@@ -74,5 +75,21 @@ public class Board {
             sb.append('\n');
         }
         return sb.toString();
+    }
+
+    public boolean checkFinished() {
+        int queenCounter = 0;
+        for (int column = 0; column < side; column++) {
+            for (int row = 0; row < side; row++) {
+                if (get(column, row) == 1) {
+                    queenCounter++;
+                    remove(column, row);
+                    boolean safe = checkSafe(column, row);
+                    occupy(column, row);
+                    if (!safe) return false;
+                }
+            }
+        }
+        return queenCounter == side;
     }
 }
