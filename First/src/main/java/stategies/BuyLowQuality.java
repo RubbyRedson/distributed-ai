@@ -1,9 +1,11 @@
 package stategies;
 
+import java.io.Serializable;
+
 /**
  * Created by Nick on 11/19/2016.
  */
-public class BuyLowQuality implements BidderStrategy {
+public class BuyLowQuality implements BidderStrategy, Serializable {
     int ourTrueValue;
     private static final int COEFF = 10;
     private static final int LOWEST_PRICE_FOR_HQ = 200;

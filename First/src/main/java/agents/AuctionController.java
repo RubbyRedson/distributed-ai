@@ -84,7 +84,6 @@ public class AuctionController extends Agent {
             @Override
             public void action() {
                 System.out.println("do cleanup");
-
                 for(int i = 0; i < agents.size(); i++){
                     //killAgent((String)agents.get(i));
                 }
@@ -110,6 +109,11 @@ public class AuctionController extends Agent {
     private void cloneAgentsIntoContainers() {
         cloneAgent("Container-2", "curator1");
         cloneAgent("Container-2", "curator2");
+        //cloneAgent("Container-2", "artistManager");
+
+        cloneAgent("Container-3", "curator1");
+        cloneAgent("Container-3", "curator2");
+        //cloneAgent("Container-2", "artistManager");
     }
 
 

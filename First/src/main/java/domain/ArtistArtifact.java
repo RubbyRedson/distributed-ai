@@ -1,9 +1,11 @@
 package domain;
 
+import java.io.Serializable;
+
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
-public class ArtistArtifact extends Artifact{
+public class ArtistArtifact extends Artifact implements Serializable{
 
     int productionCost;
     boolean isHighQuality;

@@ -134,6 +134,7 @@ public class Curator extends Agent {
                 if (l != null) destination = l;
                 doClone(destination, newName);
 
+
                 addCloneMsgReceiver();
             }
         };

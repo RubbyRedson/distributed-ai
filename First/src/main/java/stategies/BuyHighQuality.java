@@ -1,12 +1,13 @@
 package stategies;
 
+import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.Random;
 
 /**
  * Created by Nick on 11/19/2016.
  */
-public class BuyHighQuality implements BidderStrategy {
+public class BuyHighQuality implements BidderStrategy, Serializable {
     float highQualityProbability = 0.5f;
     Random random = new SecureRandom();
     private static final int UPPER_LIMIT = 2000;

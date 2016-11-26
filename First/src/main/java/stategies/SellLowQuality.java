@@ -2,10 +2,12 @@ package stategies;
 
 import domain.ArtistArtifact;
 
+import java.io.Serializable;
+
 /**
  * Created by Nick on 11/19/2016.
  */
-public class SellLowQuality implements AuctioneerStrategy {
+public class SellLowQuality implements AuctioneerStrategy, Serializable {
     private static int RISKY_MULTIPLIER = 3;
     private static double NOT_RISKY_MULTIPLIER = 1.5;
     private static int BUDGET_THRESHOLD = 500;

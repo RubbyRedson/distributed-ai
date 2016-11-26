@@ -1,5 +1,6 @@
 package agents;
 
+import java.io.Serializable;
 import java.util.List;
 import domain.ArtistArtifact;
 import jade.core.AID;

@@ -3,12 +3,23 @@ package agents;
 import behaviours.*;
 import domain.ArtistArtifact;
 import domain.OnDone;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.Location;
+import jade.core.behaviours.DataStore;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.domain.mobility.CloneAction;
 import jade.domain.mobility.MobilityOntology;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.states.MsgReceiver;
 import stategies.AuctioneerStrategy;
 import stategies.SellHighQuality;
 import stategies.SellLowQuality;
@@ -38,14 +49,22 @@ public class ArtistManager extends Agent implements ArtistState {
     private int budget;
     private int currAuctionPrice;
     private AuctioneerStrategy strategy;
-    private Random random = new SecureRandom();
+    private Location destination;
+    DataStore store;
 
     @Override
     protected void setup() {
 
+        store = new DataStore();
         budget = INITIAL_BUDGET;
         currAuctionPrice = -1;
         allCreatedArtifacts = new ArrayList<>();
+        destination = here();
+        // Register language and ontology
+        getContentManager().registerLanguage(new SLCodec());
+        getContentManager().registerOntology(MobilityOntology.getInstance());
+
+        addCloneMsgReceiver();
 
         FSMBehaviour fsm = new FSMBehaviour(this);
 
@@ -104,8 +123,6 @@ public class ArtistManager extends Agent implements ArtistState {
 
 
         //clone into other container
-        //clone into other container
-        cloneIntoOtherContainer();
 
 
         //Flow of transitions
@@ -129,13 +146,53 @@ public class ArtistManager extends Agent implements ArtistState {
         addBehaviour(fsm);
     }
 
-    private void cloneIntoOtherContainer(){
-        // Register language and ontology
-        getContentManager().registerLanguage(new SLCodec());
-        getContentManager().registerOntology(MobilityOntology.getInstance());
+    private void addCloneMsgReceiver() {
+        MessageTemplate cloneTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.REQUEST ) {
+                    ContentElement content = null;
+                    try {
+                        content = getContentManager().extractContent(msg);
+                    } catch (Codec.CodecException e) {
+                        e.printStackTrace();
+                    } catch (OntologyException e) {
+                        e.printStackTrace();
+                    }
+                    Concept concept = ((Action)content).getAction();
+                    return concept instanceof CloneAction;
+                }
+                return false;
+            }
+        });
 
 
+        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "auctionEnd"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                ContentElement content = null;
+                try {
+                    content = getContentManager().extractContent(msg);
+                } catch (Codec.CodecException e) {
+                    e.printStackTrace();
+                } catch (OntologyException e) {
+                    e.printStackTrace();
+                }
+                Concept concept = ((Action)content).getAction();
+
+                CloneAction ca = (CloneAction)concept;
+                String newName = ca.getNewName();
+                Location l = ca.getMobileAgentDescription().getDestination();
+                if (l != null) destination = l;
+                doClone(destination, newName);
+
+                addCloneMsgReceiver();
+            }
+        };
+
+        addBehaviour(cloneReceiver);
     }
+
 
     @Override
     protected void takeDown() {
