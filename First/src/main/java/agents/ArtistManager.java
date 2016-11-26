@@ -1,13 +1,14 @@
 package agents;
 
 import behaviours.*;
-import domain.Artifact;
 import domain.ArtistArtifact;
 import domain.OnDone;
+import jade.content.lang.sl.SLCodec;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.domain.mobility.MobilityOntology;
 import stategies.AuctioneerStrategy;
 import stategies.SellHighQuality;
 import stategies.SellLowQuality;
@@ -56,11 +57,6 @@ public class ArtistManager extends Agent implements ArtistState {
             @Override
             public void done(ArtistArtifact _artifact) {
                 artifact = _artifact;
-
-                fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_INFORMING, 5);
-
-                //The artist manager is bankrupt
-                fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_EXIT_AUCTION, 6);
             }
         }), STATE_CREATE_ARTWORK);
 
@@ -68,7 +64,7 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerState(new InformAuctionParticipants(this, new OnDone<String>() {
             @Override
             public void done(String message) {
-                fsm.registerDefaultTransition(STATE_INFORMING, STATE_CALCULATE_PRICE);
+
             }
         }), STATE_INFORMING);
 
@@ -78,10 +74,6 @@ public class ArtistManager extends Agent implements ArtistState {
             @Override
             public void done(Integer newAuctionPrice) {
                 currAuctionPrice = newAuctionPrice;
-
-                fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_CALL_FOR_PROPOSALS, 3);
-                fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_EXIT_AUCTION, 4);
-
             }
         }), STATE_CALCULATE_PRICE);
 
@@ -90,11 +82,6 @@ public class ArtistManager extends Agent implements ArtistState {
             @Override
             public void done(String message) {
 
-                //If still no buyer
-                fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_CALCULATE_PRICE, 1);
-
-                //If all is done
-                fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
             }
         }), STATE_CALL_FOR_PROPOSALS);
 
@@ -112,15 +99,42 @@ public class ArtistManager extends Agent implements ArtistState {
 
                 artifact = null;
                 currAuctionPrice = -1;
-
-                fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
             }
         }, STATE_EXIT_AUCTION);
 
+
+        //clone into other container
+        //clone into other container
+        cloneIntoOtherContainer();
+
+
         //Flow of transitions
         fsm.registerDefaultTransition(STATE_IDLING, STATE_CREATE_ARTWORK);
+        fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_INFORMING, 5);
+        //The artist manager is bankrupt
+        fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_EXIT_AUCTION, 6);
+        fsm.registerDefaultTransition(STATE_INFORMING, STATE_CALCULATE_PRICE);
+        fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_CALL_FOR_PROPOSALS, 3);
+        fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_EXIT_AUCTION, 4);
+
+        //If still no buyer
+        fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_CALCULATE_PRICE, 1);
+
+        //If all is done
+        fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
+        fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
+
+
 
         addBehaviour(fsm);
+    }
+
+    private void cloneIntoOtherContainer(){
+        // Register language and ontology
+        getContentManager().registerLanguage(new SLCodec());
+        getContentManager().registerOntology(MobilityOntology.getInstance());
+
+
     }
 
     @Override
