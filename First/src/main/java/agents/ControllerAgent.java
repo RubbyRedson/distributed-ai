@@ -1,20 +1,27 @@
 package agents;
 
-import java.util.*;
-import java.io.*;
-
 import gui.ControllerAgentGui;
-import jade.lang.acl.*;
-import jade.content.*;
-import jade.content.onto.basic.*;
-import jade.content.lang.*;
-import jade.content.lang.sl.*;
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.domain.*;
-import jade.domain.mobility.*;
-import jade.domain.JADEAgentManagement.*;
-import jade.gui.*;
+import jade.content.ContentElement;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
+import jade.core.AID;
+import jade.core.Location;
+import jade.core.ProfileImpl;
+import jade.domain.JADEAgentManagement.KillAgent;
+import jade.domain.JADEAgentManagement.QueryPlatformLocationsAction;
+import jade.domain.mobility.CloneAction;
+import jade.domain.mobility.MobileAgentDescription;
+import jade.domain.mobility.MobilityOntology;
+import jade.domain.mobility.MoveAction;
+import jade.gui.GuiAgent;
+import jade.gui.GuiEvent;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
 
 public class ControllerAgent extends GuiAgent {
