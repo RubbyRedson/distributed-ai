@@ -1,21 +1,23 @@
 package agents;
 
 
-import java.util.*;
-import java.io.*;
-
 import gui.MobileAgentGui;
-import jade.core.*;
-import jade.core.behaviours.*;
-import jade.lang.acl.*;
-import jade.content.*;
-import jade.content.lang.*;
-import jade.content.lang.sl.*;
-import jade.content.onto.basic.*;
-import jade.domain.*;
-import jade.domain.mobility.*;
-import jade.domain.JADEAgentManagement.*;
-import jade.gui.*;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.basic.Action;
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.Location;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.JADEAgentManagement.KillAgent;
+import jade.domain.mobility.CloneAction;
+import jade.domain.mobility.MobilityOntology;
+import jade.domain.mobility.MoveAction;
+import jade.gui.GuiAgent;
+import jade.gui.GuiEvent;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 
 public class MobileAgent extends GuiAgent {

@@ -15,6 +15,8 @@ import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.JADEAgentManagement.KillAgent;
 import jade.domain.JADEAgentManagement.QueryPlatformLocationsAction;
+import jade.domain.mobility.CloneAction;
+import jade.domain.mobility.MobileAgentDescription;
 import jade.domain.mobility.MobilityOntology;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -67,7 +69,7 @@ public class AuctionController extends Agent {
             @Override
             public void action() {
                 System.out.println("clone the agents");
-                //cloneAgentsIntoContainers();
+                cloneAgentsIntoContainers();
             }
         }, STATE_CLONE_AGENTS);
 
@@ -84,7 +86,7 @@ public class AuctionController extends Agent {
                 System.out.println("do cleanup");
 
                 for(int i = 0; i < agents.size(); i++){
-                    killAgent((String)agents.get(i));
+                    //killAgent((String)agents.get(i));
                 }
             }
         }, STATE_DO_CLEANUP);
@@ -103,6 +105,27 @@ public class AuctionController extends Agent {
         //fsm.registerDefaultTransition(STATE_DO_CLEANUP, STATE_IDLING);
 
         addBehaviour(fsm);
+    }
+
+    private void cloneAgentsIntoContainers() {
+        cloneAgent("Container-2", "curator1");
+        cloneAgent("Container-2", "curator2");
+    }
+
+
+    private void cloneAgent(String destName, String agentName){
+        AID aid = new AID(agentName, AID.ISLOCALNAME);
+        Location dest = (Location)locations.get(destName);
+        MobileAgentDescription mad = new MobileAgentDescription();
+        mad.setName(aid);
+        mad.setDestination(dest);
+        String newName = "Clone-"+agentName;
+        CloneAction ca = new CloneAction();
+        ca.setNewName(newName);
+        ca.setMobileAgentDescription(mad);
+        sendRequest(new Action(aid, ca));
+
+        agents.add(newName);
     }
 
     private void createAgentsInHome() {

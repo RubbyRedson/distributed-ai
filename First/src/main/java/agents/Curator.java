@@ -2,12 +2,21 @@ package agents;
 
 import domain.Artifact;
 import domain.Interest;
+import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.Agent;
+import jade.core.Location;
 import jade.core.behaviours.*;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.mobility.CloneAction;
+import jade.domain.mobility.MobilityOntology;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.states.MsgReceiver;
@@ -30,6 +39,7 @@ public class Curator extends Agent {
     private BidderStrategy strategy;
     private static final int END_OF_AUCTION_GAIN = 250;
     private static final int INITIAL = 1500;
+    private Location destination;
 
     private String getTour(String unparsed) {
         Interest interest = Interest.valueOf(unparsed);
@@ -44,6 +54,12 @@ public class Curator extends Agent {
 
     @Override
     protected void setup() {
+
+        destination = here();
+        // Register language and ontology
+        getContentManager().registerLanguage(new SLCodec());
+        getContentManager().registerOntology(MobilityOntology.getInstance());
+
 
         setCollection();
 
@@ -73,7 +89,58 @@ public class Curator extends Agent {
         //End auction
         addEndAuctionMsgReceiver();
 
+
+        addCloneMsgReceiver();
+
     }
+
+    private void addCloneMsgReceiver() {
+        MessageTemplate cloneTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.REQUEST ) {
+                    ContentElement content = null;
+                    try {
+                        content = getContentManager().extractContent(msg);
+                    } catch (Codec.CodecException e) {
+                        e.printStackTrace();
+                    } catch (OntologyException e) {
+                        e.printStackTrace();
+                    }
+                    Concept concept = ((Action)content).getAction();
+                    return concept instanceof CloneAction;
+                }
+                return false;
+            }
+        });
+
+
+        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "auctionEnd"){
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                ContentElement content = null;
+                try {
+                    content = getContentManager().extractContent(msg);
+                } catch (Codec.CodecException e) {
+                    e.printStackTrace();
+                } catch (OntologyException e) {
+                    e.printStackTrace();
+                }
+                Concept concept = ((Action)content).getAction();
+
+                CloneAction ca = (CloneAction)concept;
+                String newName = ca.getNewName();
+                Location l = ca.getMobileAgentDescription().getDestination();
+                if (l != null) destination = l;
+                doClone(destination, newName);
+
+                addCloneMsgReceiver();
+            }
+        };
+
+        addBehaviour(cloneReceiver);
+    }
+
 
     private void addEndAuctionMsgReceiver() {
         MessageTemplate endAuctionTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
