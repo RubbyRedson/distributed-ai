@@ -87,6 +87,9 @@ public class AuctionController extends Agent {
                                 acutionResult = msg.getContent();
                                 //done with the auctions, move on to the next one.
                                 break;
+                            }else if(msg.getContent().contains("auction_failed")){
+                                acutionResult = "\n--- Not sold --- \n The item could not be sold \n----\n";
+                                break;
                             }
                         }
                     }
@@ -187,15 +190,6 @@ public class AuctionController extends Agent {
 
         return a;
     }
-
-    private void killAgent(String agentName){
-        AID aid = new AID(agentName, AID.ISLOCALNAME);
-        KillAgent ka = new KillAgent();
-        ka.setAgent(aid);
-        sendRequest(new Action(aid, ka));
-        agents.remove(agentName);
-    }
-
 
     private void setupContainers(){
         //Register the language and ontology

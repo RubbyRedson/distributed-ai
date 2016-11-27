@@ -9,7 +9,7 @@ public class ArtistArtifact extends Artifact implements Serializable{
 
     int productionCost;
     boolean isHighQuality;
-    public static final int HIGH_QUALITY_COST = 1000;
+    public static final int HIGH_QUALITY_COST = 500;
     public static final int LOW_QUALITY_COST = 100;
 
     public ArtistArtifact(int productionCost, boolean isHighQuality, Interest type, String name, String author, String date) {

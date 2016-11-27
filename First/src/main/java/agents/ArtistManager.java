@@ -44,7 +44,7 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     private static final String STATE_CALL_FOR_PROPOSALS = "callForProposals";
     private static final String STATE_EXIT_AUCTION = "exitAuction";
 
-    private static final int INITIAL_BUDGET = 2000;
+    private static final int INITIAL_BUDGET = 10000;
 
     private List<ArtistArtifact> allCreatedArtifacts;
     private List<AID> auctionneers;
@@ -67,6 +67,8 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         } catch (ControllerException e) {
             e.printStackTrace();
         }
+
+
     }
 
     @Override
@@ -76,9 +78,10 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         getContentManager().registerLanguage(new SLCodec());
         getContentManager().registerOntology(MobilityOntology.getInstance());
 
-        store = new DataStore();
         budget = INITIAL_BUDGET;
+        store = new DataStore();
         currAuctionPrice = -1;
+
         allCreatedArtifacts = new ArrayList<>();
         destination = here();
         if (primeLocation == null) primeLocation = here();
@@ -109,7 +112,7 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         fsm.registerState(new CallForProposals(this), STATE_CALL_FOR_PROPOSALS);
 
         //Reset everything before the new round of auction
-        fsm.registerLastState(new OneShotBehaviour(this) {
+        fsm.registerState(new OneShotBehaviour(this) {
             @Override
             public void action() {
 
@@ -164,6 +167,10 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         message.setSender(getAID());
         message.addReceiver(new AID("artistManager", AID.ISLOCALNAME));
         this.send(message);
+
+        for (AID aid : auctionneers) {
+            killAgent(aid);
+        }
 
         //Go kill yourself
         doDelete();
@@ -276,11 +283,12 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     private void onAllPricesReceived(String cloneName, int price) {
         System.out.println("onAllPricesReceived " + receivedPrices.toString());
         receivedPrices.clear();
-        if (price > -1) {
-            allCreatedArtifacts.add(artifact);
-            budget -= artifact.getProductionCost();
-            budget += price;
+        allCreatedArtifacts.add(artifact);
+        budget -= artifact.getProductionCost();
 
+        if (price > -1) {
+            budget += price;
+            System.out.println("The new budget:" + budget);
 
             //Notify the local curator
             ACLMessage message = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
@@ -302,19 +310,23 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
             message.addReceiver(new AID(winner, AID.ISLOCALNAME));
 
             send(message);
-            notifyController(winner, price);
+            notifyController(winner, price, true);
         } else {
-            //TODO handle not sold
+            notifyController("", -1, false);
         }
 
         System.out.println("received prices after " + receivedPrices.toString());
 
     }
 
-    private void notifyController(String winner, int price) {
+    private void notifyController(String winner, int price, boolean wasSold) {
         //Notify the local curator
         ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-        message.setContent("\n\n--auction_done--\n" + getArtifact() + "\nPrice:" + price + "\n" + "Winner: " + winner + "\n----\n");
+        if(wasSold){
+            message.setContent("\n\n--auction_done--\n" + getArtifact() + "\nPrice:" + price + "\n" + "Winner: " + winner + "\n----\n");
+        }else{
+            message.setContent("\n\n--auction_failed--\n" + getArtifact());
+        }
         message.setLanguage("English");
         message.setOntology("auction");
         message.setSender(getAID());
