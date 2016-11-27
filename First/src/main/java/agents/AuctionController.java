@@ -114,6 +114,8 @@ public class AuctionController extends Agent {
         cloneAgent("Container-3", "curator1");
         cloneAgent("Container-3", "curator2");
         //cloneAgent("Container-2", "artistManager");
+
+        //killAgent("curator2");
     }
 
 
@@ -169,7 +171,6 @@ public class AuctionController extends Agent {
     }
 
     private void killAgent(String agentName){
-        System.out.println("The killAgent don't work");
         AID aid = new AID(agentName, AID.ISLOCALNAME);
         KillAgent ka = new KillAgent();
         ka.setAgent(aid);

@@ -128,6 +128,8 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
 
         addCloneMsgReceiver();
 
+        addBehaviour(new KillMessageReceiver(this, null, MsgReceiver.INFINITE, store, "onDeleteArtistManager"));
+
         addBehaviour(fsm);
     }
 
