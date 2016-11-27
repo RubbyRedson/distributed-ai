@@ -114,20 +114,23 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
             public void action() {
 
                 System.out.println(containerName + ", Budget: " + budget + ", Artifact:" + artifact);
-                //Set new budget,
-                if (!here().equals(primeLocation))
 
+                //Set new budget,
+                if (!here().equals(primeLocation)){
                     System.out.println("Acutioneers: ");
                     System.out.println(auctionneers);
                     for (AID aid : auctionneers) {
                         killAgent(aid);
                     }
-                doMove(primeLocation);
+                    doMove(primeLocation);
+                }
+
                 if (artifact != null) {
                     sendPriceToPrime(currAuctionPrice, winner);
 //                    allCreatedArtifacts.add(artifact);
 //                    budget -= artifact.getProductionCost();
                 }
+
 
 //                artifact = null;
 //                currAuctionPrice = -1;
