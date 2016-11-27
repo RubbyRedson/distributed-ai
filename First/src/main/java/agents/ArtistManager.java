@@ -86,8 +86,6 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         addBehaviour(new CreateArtworkBehaviour(this, this));
 
         addCloneMsgReceiver();
-
-
     }
 
     private void startAuction(){
@@ -99,13 +97,11 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         //Inform all that it's about to start an auction
         fsm.registerState(new InformAuctionParticipants(this), STATE_INFORMING);
 
-
         //Find out the new auction price
         fsm.registerState(new CalculateAuctionPrice(this, this), STATE_CALCULATE_PRICE);
 
         //Deal with the bidding and figure out what agents should be part of the bidding
         fsm.registerState(new CallForProposals(this), STATE_CALL_FOR_PROPOSALS);
-
 
         //Reset everything before the new round of auction
         fsm.registerLastState(new OneShotBehaviour(this){
@@ -128,10 +124,6 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         //Flow of transitions
         fsm.registerDefaultTransition(STATE_IDLING, STATE_INFORMING);
 
-        //fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_INFORMING, 5);
-        //The artist manager is bankrupt
-        //fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_EXIT_AUCTION, 6);
-
         fsm.registerDefaultTransition(STATE_INFORMING, STATE_CALCULATE_PRICE);
         fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_CALL_FOR_PROPOSALS, 3);
         fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_EXIT_AUCTION, 4);
@@ -141,7 +133,6 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
 
         //If all is done
         fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
-        //fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
 
         addBehaviour(new KillMessageReceiver(this, null, MsgReceiver.INFINITE, store, "onDeleteArtistManager"));
 
