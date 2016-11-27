@@ -84,7 +84,6 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         if (primeLocation == null) primeLocation = here();
         receivedPrices = new HashMap<>();
 
-
         init();
 
         addBehaviour(new CreateArtworkBehaviour(this, this));
@@ -156,12 +155,15 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     private void sendPriceToPrime(int price, String winner) {
         System.out.println("sendPriceToPrime " + price + " " + winner);
         ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-        message.setContent("buyer:" + winner + "myprice:" + price);
+        message.setContent("buyer:" + winner + ":myprice:" + price);
         message.setLanguage("English");
         message.setOntology("auction");
         message.setSender(getAID());
         message.addReceiver(new AID("artistManager", AID.ISLOCALNAME));
         this.send(message);
+
+        //Go kill yourself
+        doDelete();
     }
 
     @Override
@@ -242,14 +244,17 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         MsgReceiver cloneReceiver = new MsgReceiver(this, priceTemplate, MsgReceiver.INFINITE, store, "onCloneArtistManager") {
             @Override
             protected void handleMessage(ACLMessage msg) {
-                int begin = "winner:".length();
-                int end = msg.getContent().indexOf("myprice:");
-                String winner = msg.getContent().substring(begin - 1, end);
-                int price = Integer.parseInt(msg.getContent().substring(winner.length() + "winner:".length() +
-                        "myprice:".length()));
+
+                String[] parts = msg.getContent().split(":");
+                String winner = parts[1];
+                int price = Integer.parseInt(parts[3]);
+
                 receivedPrices.put(new AID(winner, AID.ISLOCALNAME), price);
 
-                if (receivedPrices.size() == 2) onAllPricesReceived();
+                if (receivedPrices.size() == 2){
+                    onAllPricesReceived(winner, price);
+                }
+
                 addClonePriceReceiver();
             }
         };
@@ -257,13 +262,47 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         addBehaviour(cloneReceiver);
     }
 
-    private void onAllPricesReceived() {
+    private void onAllPricesReceived(String cloneName, int price) {
         allCreatedArtifacts.add(artifact);
         budget -= artifact.getProductionCost();
-        //receivedPrices.get()
-        System.out.println("PRICES RECEIVED " + receivedPrices.toString());
+        budget += price;
 
-        //TODO all prices ready
+        //Notify the local curator
+        ACLMessage message = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+        message.setContent(getArtifact() + "\nPrice:" + price);
+        message.setLanguage("English");
+        message.setOntology("auction");
+        message.setSender(getAID());
+
+        String winner = "";
+
+        if(cloneName.contains("curator1")){
+            winner = "curator1";
+        }else if(cloneName.contains("curator2")){
+            winner = "curator2";
+        }else {
+            System.out.println("Something is wrong with the name");
+        }
+
+        message.addReceiver(new AID(winner, AID.ISLOCALNAME));
+
+        send(message);
+
+        notifyController(winner, price);
+    }
+
+    private void notifyController(String winner, int price) {
+        //Notify the local curator
+        ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+        message.setContent("\n\n--auction_done--\n" + getArtifact() + "\nPrice:" + price + "\n" + "Winner: " + winner + "\n----\n");
+        message.setLanguage("English");
+        message.setOntology("auction");
+        message.setSender(getAID());
+        message.addReceiver(new AID("ctrl", AID.ISLOCALNAME));
+        send(message);
+
+        //Create a new artwork so we don't sell the same one againaddBehaviour(new CreateArtworkBehaviour(this, this));
+        addBehaviour(new CreateArtworkBehaviour(this, this));
     }
 
 

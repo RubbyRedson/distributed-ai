@@ -44,6 +44,8 @@ public class AuctionController extends Agent {
     private static final String STATE_WAIT_FOR_RESPONSE = "waitForResponse";
     private static final String STATE_DO_CLEANUP = "doCleanup";
 
+    private String acutionResult;
+
     jade.core.Runtime runtime = jade.core.Runtime.instance();
 
     @Override
@@ -76,17 +78,33 @@ public class AuctionController extends Agent {
         fsm.registerState(new OneShotBehaviour() {
             @Override
             public void action() {
-                System.out.println("wait for response");
+                while (true) {
+                    ACLMessage msg = myAgent.receive();
+                    if (msg != null && msg.getPerformative() == ACLMessage.INFORM) {
+                        if (msg.getContent() != null) {
+                            if (msg.getContent().contains("auction_done")) {
+
+                                acutionResult = msg.getContent();
+                                //done with the auctions, move on to the next one.
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }, STATE_WAIT_FOR_RESPONSE);
 
-        fsm.registerLastState(new OneShotBehaviour() {
+        fsm.registerState(new OneShotBehaviour() {
             @Override
             public void action() {
-                System.out.println("do cleanup");
-                for(int i = 0; i < agents.size(); i++){
-                    //killAgent((String)agents.get(i));
-                }
+                System.out.println("The auction was done. The result:" + acutionResult);
+
+                Vector newAgents = new Vector();
+                newAgents.add(agents.get(0));
+                newAgents.add(agents.get(1));
+                newAgents.add(agents.get(2));
+
+                agents = newAgents;
             }
         }, STATE_DO_CLEANUP);
 
@@ -101,7 +119,7 @@ public class AuctionController extends Agent {
         fsm.registerDefaultTransition(STATE_CREATE_CONTAINERS, STATE_CLONE_AGENTS);
         fsm.registerDefaultTransition(STATE_CLONE_AGENTS, STATE_WAIT_FOR_RESPONSE);
         fsm.registerDefaultTransition(STATE_WAIT_FOR_RESPONSE, STATE_DO_CLEANUP);
-        //fsm.registerDefaultTransition(STATE_DO_CLEANUP, STATE_IDLING);
+        fsm.registerDefaultTransition(STATE_DO_CLEANUP, STATE_IDLING);
 
         addBehaviour(fsm);
     }
