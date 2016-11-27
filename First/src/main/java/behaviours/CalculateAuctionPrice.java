@@ -41,6 +41,7 @@ public class CalculateAuctionPrice extends OneShotBehaviour implements Serializa
             }else{
                 //I cannot go lower than my production cost :(
                 System.out.println("Sorry, I cannot go lower than my production cost");
+                agentState.sendPriceToPrime(-1, agentState.getContainerName() + "none");
                 exitState = 4;
             }
         }

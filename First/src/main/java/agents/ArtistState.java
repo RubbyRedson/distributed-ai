@@ -23,7 +23,7 @@ public interface ArtistState {
 
     void setWinner(String winner);
     String getContainerName();
-
+    void sendPriceToPrime(int price, String winner);
     //void setCurrAuctionPrice(int newPrice);
     //void setNewBudget(int newBudget);
 }

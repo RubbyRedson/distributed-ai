@@ -155,7 +155,7 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         addBehaviour(fsm);
     }
 
-    private void sendPriceToPrime(int price, String winner) {
+    public void sendPriceToPrime(int price, String winner) {
         System.out.println("sendPriceToPrime " + price + " " + winner);
         ACLMessage message = new ACLMessage(ACLMessage.INFORM);
         message.setContent("buyer:" + winner + ":myprice:" + price);
@@ -247,15 +247,23 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         MsgReceiver cloneReceiver = new MsgReceiver(this, priceTemplate, MsgReceiver.INFINITE, store, "onCloneArtistManager") {
             @Override
             protected void handleMessage(ACLMessage msg) {
-
                 String[] parts = msg.getContent().split(":");
                 String winner = parts[1];
                 int price = Integer.parseInt(parts[3]);
 
                 receivedPrices.put(new AID(winner, AID.ISLOCALNAME), price);
+                System.out.println("Handled price \n" + receivedPrices.toString());
 
                 if (receivedPrices.size() == 2){
-                    onAllPricesReceived(winner, price);
+                    int maxPrice = -1;
+                    String maxName = "";
+                    for (AID aid : receivedPrices.keySet()) {
+                        if (receivedPrices.get(aid) > maxPrice) {
+                            maxPrice = receivedPrices.get(aid);
+                            maxName = aid.getName();
+                        }
+                    }
+                    onAllPricesReceived(maxName, maxPrice);
                 }
 
                 addClonePriceReceiver();
@@ -266,32 +274,41 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     }
 
     private void onAllPricesReceived(String cloneName, int price) {
-        allCreatedArtifacts.add(artifact);
-        budget -= artifact.getProductionCost();
-        budget += price;
+        System.out.println("onAllPricesReceived " + receivedPrices.toString());
+        receivedPrices.clear();
+        if (price > -1) {
+            allCreatedArtifacts.add(artifact);
+            budget -= artifact.getProductionCost();
+            budget += price;
 
-        //Notify the local curator
-        ACLMessage message = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-        message.setContent(getArtifact() + "\nPrice:" + price);
-        message.setLanguage("English");
-        message.setOntology("auction");
-        message.setSender(getAID());
 
-        String winner = "";
+            //Notify the local curator
+            ACLMessage message = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+            message.setContent(getArtifact() + "\nPrice:" + price);
+            message.setLanguage("English");
+            message.setOntology("auction");
+            message.setSender(getAID());
 
-        if(cloneName.contains("curator1")){
-            winner = "curator1";
-        }else if(cloneName.contains("curator2")){
-            winner = "curator2";
-        }else {
-            System.out.println("Something is wrong with the name");
+            String winner = "";
+
+            if(cloneName.contains("curator1")){
+                winner = "curator1";
+            }else if(cloneName.contains("curator2")){
+                winner = "curator2";
+            }else {
+                System.out.println("Something is wrong with the name");
+            }
+
+            message.addReceiver(new AID(winner, AID.ISLOCALNAME));
+
+            send(message);
+            notifyController(winner, price);
+        } else {
+            //TODO handle not sold
         }
 
-        message.addReceiver(new AID(winner, AID.ISLOCALNAME));
+        System.out.println("received prices after " + receivedPrices.toString());
 
-        send(message);
-
-        notifyController(winner, price);
     }
 
     private void notifyController(String winner, int price) {
