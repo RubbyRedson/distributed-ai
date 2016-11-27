@@ -3,7 +3,6 @@ package agents;
 import behaviours.*;
 import domain.ArtistArtifact;
 import domain.OnArtifactDone;
-import domain.OnDone;
 import domain.OnPriceCalculation;
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -17,6 +16,7 @@ import jade.core.Location;
 import jade.core.behaviours.DataStore;
 import jade.core.behaviours.FSMBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.domain.JADEAgentManagement.KillAgent;
 import jade.domain.mobility.CloneAction;
 import jade.domain.mobility.MobilityOntology;
 import jade.lang.acl.ACLMessage;
@@ -27,14 +27,10 @@ import stategies.AuctioneerStrategy;
 import stategies.SellHighQuality;
 import stategies.SellLowQuality;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 
 /**
  * Created by victoraxelsson on 2016-11-19.
@@ -57,10 +53,15 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     private int currAuctionPrice;
     private AuctioneerStrategy strategy;
     private Location destination;
+    private static Location primeLocation;
     private DataStore store;
     private transient String containerName;
+    private transient String winner;
+    private transient Map<AID, Integer> receivedPrices;
 
-    private void init(){
+    private void init() {
+        getContentManager().registerLanguage(new SLCodec());
+        getContentManager().registerOntology(MobilityOntology.getInstance());
         try {
             containerName = getContainerController().getContainerName();
         } catch (ControllerException e) {
@@ -80,15 +81,20 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         currAuctionPrice = -1;
         allCreatedArtifacts = new ArrayList<>();
         destination = here();
+        if (primeLocation == null) primeLocation = here();
+        receivedPrices = new HashMap<>();
+
 
         init();
 
         addBehaviour(new CreateArtworkBehaviour(this, this));
 
         addCloneMsgReceiver();
+
+        addClonePriceReceiver();
     }
 
-    private void startAuction(){
+    private void startAuction() {
         FSMBehaviour fsm = new FSMBehaviour(this);
 
         //Start by idling
@@ -104,20 +110,28 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         fsm.registerState(new CallForProposals(this), STATE_CALL_FOR_PROPOSALS);
 
         //Reset everything before the new round of auction
-        fsm.registerLastState(new OneShotBehaviour(this){
+        fsm.registerLastState(new OneShotBehaviour(this) {
             @Override
             public void action() {
 
                 System.out.println(containerName + ", Budget: " + budget + ", Artifact:" + artifact);
                 //Set new budget,
+                if (!here().equals(primeLocation))
 
-                if(artifact != null){
-                    allCreatedArtifacts.add(artifact);
-                    budget -= artifact.getProductionCost();
+                    System.out.println("Acutioneers: ");
+                    System.out.println(auctionneers);
+                    for (AID aid : auctionneers) {
+                        killAgent(aid);
+                    }
+                doMove(primeLocation);
+                if (artifact != null) {
+                    sendPriceToPrime(currAuctionPrice, winner);
+//                    allCreatedArtifacts.add(artifact);
+//                    budget -= artifact.getProductionCost();
                 }
 
-                artifact = null;
-                currAuctionPrice = -1;
+//                artifact = null;
+//                currAuctionPrice = -1;
             }
         }, STATE_EXIT_AUCTION);
 
@@ -139,6 +153,17 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         addBehaviour(fsm);
     }
 
+    private void sendPriceToPrime(int price, String winner) {
+        System.out.println("sendPriceToPrime " + price + " " + winner);
+        ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+        message.setContent("buyer:" + winner + "myprice:" + price);
+        message.setLanguage("English");
+        message.setOntology("auction");
+        message.setSender(getAID());
+        message.addReceiver(new AID("artistManager", AID.ISLOCALNAME));
+        this.send(message);
+    }
+
     @Override
     protected void afterClone() {
         init();
@@ -151,7 +176,7 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         MessageTemplate cloneTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
             @Override
             public boolean match(ACLMessage msg) {
-                if (msg.getPerformative() == ACLMessage.REQUEST ) {
+                if (msg.getPerformative() == ACLMessage.REQUEST) {
                     ContentElement content = null;
                     try {
                         content = getContentManager().extractContent(msg);
@@ -160,7 +185,7 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
                     } catch (OntologyException e) {
                         e.printStackTrace();
                     }
-                    Concept concept = ((Action)content).getAction();
+                    Concept concept = ((Action) content).getAction();
                     int i = 0;
                     return concept instanceof CloneAction;
                 }
@@ -169,7 +194,7 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         });
 
 
-        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "onCloneArtistManager"){
+        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "onCloneArtistManager") {
             @Override
             protected void handleMessage(ACLMessage msg) {
                 ContentElement content = null;
@@ -181,10 +206,10 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
                     e.printStackTrace();
                 }
                 int i = 0;
-                Concept concept = ((Action)content).getAction();
+                Concept concept = ((Action) content).getAction();
 
 
-                CloneAction ca = (CloneAction)concept;
+                CloneAction ca = (CloneAction) concept;
                 String newName = ca.getNewName();
                 Location l = ca.getMobileAgentDescription().getDestination();
                 if (l != null) destination = l;
@@ -196,6 +221,49 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         };
 
         addBehaviour(cloneReceiver);
+    }
+
+    private void addClonePriceReceiver() {
+        MessageTemplate priceTemplate = new MessageTemplate(new MessageTemplate.MatchExpression() {
+            @Override
+            public boolean match(ACLMessage msg) {
+                if (msg.getPerformative() == ACLMessage.INFORM) {
+                    if (msg.getContent() != null) {
+                        if (msg.getContent().contains("myprice:")) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
+
+
+        MsgReceiver cloneReceiver = new MsgReceiver(this, priceTemplate, MsgReceiver.INFINITE, store, "onCloneArtistManager") {
+            @Override
+            protected void handleMessage(ACLMessage msg) {
+                int begin = "winner:".length();
+                int end = msg.getContent().indexOf("myprice:");
+                String winner = msg.getContent().substring(begin - 1, end);
+                int price = Integer.parseInt(msg.getContent().substring(winner.length() + "winner:".length() +
+                        "myprice:".length()));
+                receivedPrices.put(new AID(winner, AID.ISLOCALNAME), price);
+
+                if (receivedPrices.size() == 2) onAllPricesReceived();
+                addClonePriceReceiver();
+            }
+        };
+
+        addBehaviour(cloneReceiver);
+    }
+
+    private void onAllPricesReceived() {
+        allCreatedArtifacts.add(artifact);
+        budget -= artifact.getProductionCost();
+        //receivedPrices.get()
+        System.out.println("PRICES RECEIVED " + receivedPrices.toString());
+
+        //TODO all prices ready
     }
 
 
@@ -251,6 +319,16 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     }
 
     @Override
+    public void setWinner(String winner) {
+        this.winner = winner;
+    }
+
+    @Override
+    public String getContainerName() {
+        return containerName;
+    }
+
+    @Override
     public void onDone(ArtistArtifact artifact) {
         this.artifact = artifact;
     }
@@ -258,5 +336,26 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     @Override
     public void onDone(int price) {
         this.currAuctionPrice = price;
+    }
+
+    private void killAgent(AID aid) {
+        KillAgent ka = new KillAgent();
+        ka.setAgent(aid);
+        sendRequest(new Action(aid, ka));
+    }
+
+    void sendRequest(Action action) {
+// ---------------------------------
+
+        ACLMessage request = new ACLMessage(ACLMessage.REQUEST);
+        request.setLanguage(new SLCodec().getName());
+        request.setOntology(MobilityOntology.getInstance().getName());
+        try {
+            getContentManager().fillContent(request, action);
+            request.addReceiver(action.getActor());
+            send(request);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

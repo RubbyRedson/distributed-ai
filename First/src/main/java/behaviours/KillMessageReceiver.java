@@ -17,7 +17,7 @@ import jade.proto.states.MsgReceiver;
 public class KillMessageReceiver extends MsgReceiver {
     public KillMessageReceiver(Agent a, MessageTemplate mt, long deadline, DataStore s, Object msgKey) {
         super(a, new MessageTemplate((MessageTemplate.MatchExpression) msg -> {
-            if (msg.getPerformative() == ACLMessage.REQUEST && MobilityOntology.getInstance().getName().equals(msg.getOntology())) {
+            if (msg.getPerformative() == ACLMessage.REQUEST) {
                 try {
                     ContentElement content = a.getContentManager().extractContent(msg);
                     if (content == null) return false;

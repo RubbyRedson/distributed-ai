@@ -20,6 +20,10 @@ public interface ArtistState {
     AuctioneerStrategy getAgentStrategy();
 
     void setAgentStrategy();
+
+    void setWinner(String winner);
+    String getContainerName();
+
     //void setCurrAuctionPrice(int newPrice);
     //void setNewBudget(int newBudget);
 }

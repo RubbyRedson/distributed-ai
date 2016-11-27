@@ -117,6 +117,8 @@ public class CallForProposals extends OneShotBehaviour implements Serializable {
         message.setSender(this.getAgent().getAID());
         message.addReceiver(auctionWinner);
 
+        agentState.setWinner(auctionWinner.getLocalName());
+
         return message;
     }
 

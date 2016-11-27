@@ -31,14 +31,18 @@ public class InformAuctionParticipants extends OneShotBehaviour implements Seria
     public void action() {
         System.out.println("inform");
         DFAgentDescription template = new DFAgentDescription();
+
         ServiceDescription sd = new ServiceDescription();
-        sd.setType(CURATOR);
+        sd.setType(CURATOR + agentState.getContainerName());
+
         template.addServices(sd);
 
         try {
             DFAgentDescription[] result = DFService.search(this.getAgent(), template);
             List<AID> auctionParticipants = new ArrayList<>();
             for (int i = 0; i < result.length; ++i) {
+
+
                 auctionParticipants.add(result[i].getName());
             }
             System.out.println("Participats: " + auctionParticipants.toString());

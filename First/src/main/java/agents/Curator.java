@@ -21,6 +21,7 @@ import jade.domain.mobility.MobilityOntology;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.states.MsgReceiver;
+import jade.wrapper.ControllerException;
 import messages.Message;
 import messages.MessageType;
 import stategies.BidderStrategy;
@@ -41,6 +42,7 @@ public class Curator extends Agent {
     private static final int END_OF_AUCTION_GAIN = 250;
     private static final int INITIAL = 1500;
     private Location destination;
+    private String containerName;
 
     private String getTour(String unparsed) {
         Interest interest = Interest.valueOf(unparsed);
@@ -53,18 +55,30 @@ public class Curator extends Agent {
         return tour.toString();
     }
 
-    @Override
-    protected void setup() {
+    private void init(){
+        try {
+            containerName = getContainerController().getContainerName();
+        } catch (ControllerException e) {
+            e.printStackTrace();
+        }
+
+        //Register the service in the DF
+        registerCuratorService();
 
         destination = here();
         // Register language and ontology
         getContentManager().registerLanguage(new SLCodec());
         getContentManager().registerOntology(MobilityOntology.getInstance());
 
+    }
+
+    @Override
+    protected void setup() {
+        init();
+
         setCollection();
 
-        //Register the service in the DF
-        registerCuratorService();
+
 
         store = new DataStore();
 
@@ -93,6 +107,20 @@ public class Curator extends Agent {
         addCloneMsgReceiver();
 
         addBehaviour(new KillMessageReceiver(this, null, MsgReceiver.INFINITE, store, "onDeleteCurator"));
+    }
+
+    @Override
+    protected void afterMove() {
+        super.afterMove();
+
+        init();
+    }
+
+    @Override
+    protected void afterClone() {
+        super.afterClone();
+
+        init();
     }
 
     private void addCloneMsgReceiver() {
@@ -407,7 +435,7 @@ public class Curator extends Agent {
         dfd.setName(getAID());
 
         ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType("curator");
+        serviceDescription.setType("curator" + containerName);
         serviceDescription.setName(getLocalName());
         dfd.addServices(serviceDescription);
 
