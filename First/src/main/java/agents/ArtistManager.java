@@ -143,6 +143,8 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
         //fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
 
+        addBehaviour(new KillMessageReceiver(this, null, MsgReceiver.INFINITE, store, "onDeleteArtistManager"));
+
         addBehaviour(fsm);
     }
 

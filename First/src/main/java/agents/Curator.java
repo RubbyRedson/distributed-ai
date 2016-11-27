@@ -1,5 +1,6 @@
 package agents;
 
+import behaviours.KillMessageReceiver;
 import domain.Artifact;
 import domain.Interest;
 import jade.content.Concept;
@@ -91,6 +92,7 @@ public class Curator extends Agent {
 
         addCloneMsgReceiver();
 
+        addBehaviour(new KillMessageReceiver(this, null, MsgReceiver.INFINITE, store, "onDeleteCurator"));
     }
 
     private void addCloneMsgReceiver() {
