@@ -108,6 +108,7 @@ public class Curator extends Agent {
                     } catch (OntologyException e) {
                         e.printStackTrace();
                     }
+                    if (content == null) return false;
                     Concept concept = ((Action)content).getAction();
                     return concept instanceof CloneAction;
                 }
