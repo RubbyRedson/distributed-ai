@@ -39,7 +39,7 @@ public class Curator extends Agent {
     DataStore store;
     private int budget = INITIAL;
     private BidderStrategy strategy;
-    private static final int END_OF_AUCTION_GAIN = 250;
+    private static final int END_OF_AUCTION_GAIN = 80;
     private static final int INITIAL = 1500;
     private Location destination;
     private String containerName;
@@ -70,6 +70,13 @@ public class Curator extends Agent {
         getContentManager().registerLanguage(new SLCodec());
         getContentManager().registerOntology(MobilityOntology.getInstance());
 
+    }
+
+    @Override
+    protected void beforeClone() {
+        super.beforeClone();
+
+        budget += END_OF_AUCTION_GAIN;
     }
 
     @Override

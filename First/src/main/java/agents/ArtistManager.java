@@ -44,7 +44,7 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     private static final String STATE_CALL_FOR_PROPOSALS = "callForProposals";
     private static final String STATE_EXIT_AUCTION = "exitAuction";
 
-    private static final int INITIAL_BUDGET = 10000;
+    private static final int INITIAL_BUDGET = 2000;
 
     private List<ArtistArtifact> allCreatedArtifacts;
     private List<AID> auctionneers;
