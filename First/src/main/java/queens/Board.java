@@ -44,7 +44,7 @@ public class Board implements Serializable {
                 if (get(column, row) == 1) {
                     int colDiff = columnNumber - column;
                     int rowDiff = rowNumber - row;
-                    if (colDiff == rowDiff) return false;
+                    if (colDiff == rowDiff || colDiff == -rowDiff) return false;
                 }
             }
         }

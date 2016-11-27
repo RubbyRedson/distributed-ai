@@ -124,7 +124,6 @@ public class Queen extends Agent {
     }
 
     private void moveNext(Board board) throws IOException {
-//        System.out.println("moveNext \n" + queens.toString() + "\n send message to " );
         ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
         msg.setOntology("queens");
         msg.setContentObject(board);
