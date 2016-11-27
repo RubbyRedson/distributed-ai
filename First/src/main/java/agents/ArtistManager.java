@@ -2,7 +2,9 @@ package agents;
 
 import behaviours.*;
 import domain.ArtistArtifact;
+import domain.OnArtifactDone;
 import domain.OnDone;
+import domain.OnPriceCalculation;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.lang.Codec;
@@ -24,6 +26,10 @@ import stategies.AuctioneerStrategy;
 import stategies.SellHighQuality;
 import stategies.SellLowQuality;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +38,7 @@ import java.util.Random;
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
-public class ArtistManager extends Agent implements ArtistState {
+public class ArtistManager extends Agent implements ArtistState, OnArtifactDone, OnPriceCalculation {
 
     private static final String STATE_IDLING = "idleing";
     private static final String STATE_CREATE_ARTWORK = "createArtwork";
@@ -50,21 +56,20 @@ public class ArtistManager extends Agent implements ArtistState {
     private int currAuctionPrice;
     private AuctioneerStrategy strategy;
     private Location destination;
-    DataStore store;
+    private DataStore store;
 
     @Override
     protected void setup() {
+
+        // Register language and ontology
+        getContentManager().registerLanguage(new SLCodec());
+        getContentManager().registerOntology(MobilityOntology.getInstance());
 
         store = new DataStore();
         budget = INITIAL_BUDGET;
         currAuctionPrice = -1;
         allCreatedArtifacts = new ArrayList<>();
         destination = here();
-        // Register language and ontology
-        getContentManager().registerLanguage(new SLCodec());
-        getContentManager().registerOntology(MobilityOntology.getInstance());
-
-        addCloneMsgReceiver();
 
         FSMBehaviour fsm = new FSMBehaviour(this);
 
@@ -72,37 +77,17 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerFirstState(new IdleBehaveiour(), STATE_IDLING);
 
         //Create a new artifact
-        fsm.registerState(new CreateArtworkBehaviour(this, new OnDone<ArtistArtifact>() {
-            @Override
-            public void done(ArtistArtifact _artifact) {
-                artifact = _artifact;
-            }
-        }), STATE_CREATE_ARTWORK);
+        fsm.registerState(new CreateArtworkBehaviour(this, this), STATE_CREATE_ARTWORK);
 
         //Inform all that it's about to start an auction
-        fsm.registerState(new InformAuctionParticipants(this, new OnDone<String>() {
-            @Override
-            public void done(String message) {
-
-            }
-        }), STATE_INFORMING);
+        fsm.registerState(new InformAuctionParticipants(this), STATE_INFORMING);
 
 
         //Find out the new auction price
-        fsm.registerState(new CalculateAuctionPrice(this, new OnDone<Integer>() {
-            @Override
-            public void done(Integer newAuctionPrice) {
-                currAuctionPrice = newAuctionPrice;
-            }
-        }), STATE_CALCULATE_PRICE);
+        fsm.registerState(new CalculateAuctionPrice(this, this), STATE_CALCULATE_PRICE);
 
         //Deal with the bidding and figure out what agents should be part of the bidding
-        fsm.registerState(new CallForProposals(this, new OnDone<String>() {
-            @Override
-            public void done(String message) {
-
-            }
-        }), STATE_CALL_FOR_PROPOSALS);
+        fsm.registerState(new CallForProposals(this), STATE_CALL_FOR_PROPOSALS);
 
         //Reset everything before the new round of auction
         fsm.registerState(new OneShotBehaviour(this){
@@ -141,7 +126,7 @@ public class ArtistManager extends Agent implements ArtistState {
         fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
         fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
 
-
+        addCloneMsgReceiver();
 
         addBehaviour(fsm);
     }
@@ -160,6 +145,7 @@ public class ArtistManager extends Agent implements ArtistState {
                         e.printStackTrace();
                     }
                     Concept concept = ((Action)content).getAction();
+                    int i = 0;
                     return concept instanceof CloneAction;
                 }
                 return false;
@@ -167,7 +153,7 @@ public class ArtistManager extends Agent implements ArtistState {
         });
 
 
-        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "auctionEnd"){
+        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "onCloneArtistManager"){
             @Override
             protected void handleMessage(ACLMessage msg) {
                 ContentElement content = null;
@@ -178,12 +164,15 @@ public class ArtistManager extends Agent implements ArtistState {
                 } catch (OntologyException e) {
                     e.printStackTrace();
                 }
+                int i = 0;
                 Concept concept = ((Action)content).getAction();
+
 
                 CloneAction ca = (CloneAction)concept;
                 String newName = ca.getNewName();
                 Location l = ca.getMobileAgentDescription().getDestination();
                 if (l != null) destination = l;
+
                 doClone(destination, newName);
 
                 addCloneMsgReceiver();
@@ -243,5 +232,15 @@ public class ArtistManager extends Agent implements ArtistState {
             System.out.println("Auctioneer chose sellLow strategy");
             strategy = new SellLowQuality();
         }
+    }
+
+    @Override
+    public void onDone(ArtistArtifact artifact) {
+        this.artifact = artifact;
+    }
+
+    @Override
+    public void onDone(int price) {
+        this.currAuctionPrice = price;
     }
 }

@@ -4,6 +4,7 @@ import agents.ArtistState;
 import domain.*;
 import jade.core.behaviours.OneShotBehaviour;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import static jade.core.Runtime.getDate;
@@ -11,16 +12,15 @@ import static jade.core.Runtime.getDate;
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
-public class CreateArtworkBehaviour extends OneShotBehaviour {
+public class CreateArtworkBehaviour extends OneShotBehaviour implements Serializable {
 
-    private OnDone<ArtistArtifact> onDone;
-
+    private OnArtifactDone onDone;
     private int exitCondition;
 
 
     private ArtistState agentState;
 
-    public CreateArtworkBehaviour(ArtistState agentState, OnDone<ArtistArtifact> onDone){
+    public CreateArtworkBehaviour(ArtistState agentState, OnArtifactDone onDone){
         this.onDone = onDone;
         this.agentState = agentState;
         exitCondition = 5;
@@ -43,7 +43,7 @@ public class CreateArtworkBehaviour extends OneShotBehaviour {
             exitCondition = 6;
         }
 
-        onDone.done(artifact);
+        onDone.onDone(artifact);
     }
 
 

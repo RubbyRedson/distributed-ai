@@ -7,19 +7,19 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
+import java.io.Serializable;
+
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
-public class CallForProposals extends OneShotBehaviour {
+public class CallForProposals extends OneShotBehaviour implements Serializable {
 
-    private OnDone<String> onDone;
     private ArtistState agentState;
     private int msgCounter;
     private int exitCondition;
     private AID auctionWinner;
 
-    public CallForProposals(ArtistState agentState, OnDone<String> onDone) {
-        this.onDone = onDone;
+    public CallForProposals(ArtistState agentState) {
         this.agentState = agentState;
     }
 
@@ -36,7 +36,6 @@ public class CallForProposals extends OneShotBehaviour {
         startMessageLoop();
 
         System.out.println("Sending messages to all the particiapting agents and receiving their responses");
-        onDone.done("mock done");
     }
 
     private void startMessageLoop() { //TODO doesn't seem to send cfp for the second round (no one proposed). works fine with 1 round though

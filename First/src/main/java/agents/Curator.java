@@ -115,7 +115,7 @@ public class Curator extends Agent {
         });
 
 
-        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "auctionEnd"){
+        MsgReceiver cloneReceiver = new MsgReceiver(this, cloneTemplate, MsgReceiver.INFINITE, store, "onCuratorClone"){
             @Override
             protected void handleMessage(ACLMessage msg) {
                 ContentElement content = null;

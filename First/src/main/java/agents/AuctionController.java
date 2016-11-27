@@ -109,7 +109,7 @@ public class AuctionController extends Agent {
     private void cloneAgentsIntoContainers() {
         cloneAgent("Container-2", "curator1");
         cloneAgent("Container-2", "curator2");
-        //cloneAgent("Container-2", "artistManager");
+        cloneAgent("Container-2", "artistManager");
 
         cloneAgent("Container-3", "curator1");
         cloneAgent("Container-3", "curator2");
@@ -123,7 +123,8 @@ public class AuctionController extends Agent {
         MobileAgentDescription mad = new MobileAgentDescription();
         mad.setName(aid);
         mad.setDestination(dest);
-        String newName = "Clone-"+agentName;
+        String newName = "Clone"+(agents.size() - 2 )+ "-"+agentName;
+
         CloneAction ca = new CloneAction();
         ca.setNewName(newName);
         ca.setMobileAgentDescription(mad);

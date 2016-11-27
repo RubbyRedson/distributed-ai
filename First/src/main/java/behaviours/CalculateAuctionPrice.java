@@ -1,17 +1,16 @@
 package behaviours;
 
 import agents.ArtistState;
-import domain.Artifact;
-import domain.ArtistArtifact;
-import domain.Interest;
-import domain.OnDone;
+import domain.*;
 import jade.core.behaviours.OneShotBehaviour;
+
+import java.io.Serializable;
 
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
-public class CalculateAuctionPrice extends OneShotBehaviour {
-    private OnDone<Integer> onDone;
+public class CalculateAuctionPrice extends OneShotBehaviour implements Serializable {
+    private OnPriceCalculation onDone;
     private ArtistState agentState;
     int currAuctionPrice;
 
@@ -20,7 +19,7 @@ public class CalculateAuctionPrice extends OneShotBehaviour {
 
     private int exitState;
 
-    public CalculateAuctionPrice(ArtistState agentState, OnDone<Integer> onDone){
+    public CalculateAuctionPrice(ArtistState agentState, OnPriceCalculation onDone){
         this.agentState = agentState;
         this.onDone = onDone;
         exitState = 3;
@@ -45,7 +44,7 @@ public class CalculateAuctionPrice extends OneShotBehaviour {
             }
         }
 
-        onDone.done(currAuctionPrice);
+        onDone.onDone(currAuctionPrice);
     }
 
     @Override

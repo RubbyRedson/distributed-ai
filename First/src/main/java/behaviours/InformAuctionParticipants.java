@@ -10,21 +10,20 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by victoraxelsson on 2016-11-19.
  */
-public class InformAuctionParticipants extends OneShotBehaviour {
+public class InformAuctionParticipants extends OneShotBehaviour implements Serializable {
 
     private static final String CURATOR = "curator";
 
-    private OnDone<String> onDone;
     private ArtistState agentState;
 
-    public InformAuctionParticipants(ArtistState agentState, OnDone<String> onDone){
-        this.onDone = onDone;
+    public InformAuctionParticipants(ArtistState agentState){
         this.agentState = agentState;
     }
 
@@ -64,8 +63,6 @@ public class InformAuctionParticipants extends OneShotBehaviour {
         } catch (FIPAException e) {
             e.printStackTrace();
         }
-
-        onDone.done("Done with informing");
     }
 
     public String getMessage() {
