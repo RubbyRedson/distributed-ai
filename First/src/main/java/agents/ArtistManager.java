@@ -22,6 +22,7 @@ import jade.domain.mobility.MobilityOntology;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.states.MsgReceiver;
+import jade.wrapper.ControllerException;
 import stategies.AuctioneerStrategy;
 import stategies.SellHighQuality;
 import stategies.SellLowQuality;
@@ -57,6 +58,15 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
     private AuctioneerStrategy strategy;
     private Location destination;
     private DataStore store;
+    private transient String containerName;
+
+    private void init(){
+        try {
+            containerName = getContainerController().getContainerName();
+        } catch (ControllerException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     protected void setup() {
@@ -71,13 +81,20 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         allCreatedArtifacts = new ArrayList<>();
         destination = here();
 
+        init();
+
+        addBehaviour(new CreateArtworkBehaviour(this, this));
+
+        addCloneMsgReceiver();
+
+
+    }
+
+    private void startAuction(){
         FSMBehaviour fsm = new FSMBehaviour(this);
 
         //Start by idling
         fsm.registerFirstState(new IdleBehaveiour(), STATE_IDLING);
-
-        //Create a new artifact
-        fsm.registerState(new CreateArtworkBehaviour(this, this), STATE_CREATE_ARTWORK);
 
         //Inform all that it's about to start an auction
         fsm.registerState(new InformAuctionParticipants(this), STATE_INFORMING);
@@ -89,11 +106,13 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
         //Deal with the bidding and figure out what agents should be part of the bidding
         fsm.registerState(new CallForProposals(this), STATE_CALL_FOR_PROPOSALS);
 
+
         //Reset everything before the new round of auction
-        fsm.registerState(new OneShotBehaviour(this){
+        fsm.registerLastState(new OneShotBehaviour(this){
             @Override
             public void action() {
-                System.out.println("Exiting the auction. Budget: " + budget);
+
+                System.out.println(containerName + ", Budget: " + budget + ", Artifact:" + artifact);
                 //Set new budget,
 
                 if(artifact != null){
@@ -106,15 +125,13 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
             }
         }, STATE_EXIT_AUCTION);
 
-
-        //clone into other container
-
-
         //Flow of transitions
-        fsm.registerDefaultTransition(STATE_IDLING, STATE_CREATE_ARTWORK);
-        fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_INFORMING, 5);
+        fsm.registerDefaultTransition(STATE_IDLING, STATE_INFORMING);
+
+        //fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_INFORMING, 5);
         //The artist manager is bankrupt
-        fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_EXIT_AUCTION, 6);
+        //fsm.registerTransition(STATE_CREATE_ARTWORK, STATE_EXIT_AUCTION, 6);
+
         fsm.registerDefaultTransition(STATE_INFORMING, STATE_CALCULATE_PRICE);
         fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_CALL_FOR_PROPOSALS, 3);
         fsm.registerTransition(STATE_CALCULATE_PRICE, STATE_EXIT_AUCTION, 4);
@@ -124,11 +141,17 @@ public class ArtistManager extends Agent implements ArtistState, OnArtifactDone,
 
         //If all is done
         fsm.registerTransition(STATE_CALL_FOR_PROPOSALS, STATE_EXIT_AUCTION, 2);
-        fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
-
-        addCloneMsgReceiver();
+        //fsm.registerDefaultTransition(STATE_EXIT_AUCTION, STATE_IDLING);
 
         addBehaviour(fsm);
+    }
+
+    @Override
+    protected void afterClone() {
+        init();
+
+        startAuction();
+        System.out.println("My new container is: " + containerName);
     }
 
     private void addCloneMsgReceiver() {

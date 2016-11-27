@@ -27,6 +27,7 @@ public class CalculateAuctionPrice extends OneShotBehaviour implements Serializa
 
     @Override
     public void action() {
+        System.out.println("Calculating price");
         currAuctionPrice = agentState.getCurrAuctionPrice();
 
         //There is no price yet

@@ -60,7 +60,6 @@ public class Curator extends Agent {
         getContentManager().registerLanguage(new SLCodec());
         getContentManager().registerOntology(MobilityOntology.getInstance());
 
-
         setCollection();
 
         //Register the service in the DF

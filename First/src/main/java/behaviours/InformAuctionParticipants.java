@@ -29,6 +29,7 @@ public class InformAuctionParticipants extends OneShotBehaviour implements Seria
 
     @Override
     public void action() {
+        System.out.println("inform");
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType(CURATOR);

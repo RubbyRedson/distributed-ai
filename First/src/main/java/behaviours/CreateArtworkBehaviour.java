@@ -28,6 +28,7 @@ public class CreateArtworkBehaviour extends OneShotBehaviour implements Serializ
 
     @Override
     public void action() {
+        System.out.println("Create artwork");
         agentState.setAgentStrategy();
         ArtistArtifact artifact = null;
 

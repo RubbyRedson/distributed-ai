@@ -113,7 +113,7 @@ public class AuctionController extends Agent {
 
         cloneAgent("Container-3", "curator1");
         cloneAgent("Container-3", "curator2");
-        //cloneAgent("Container-2", "artistManager");
+        cloneAgent("Container-3", "artistManager");
     }
 
 

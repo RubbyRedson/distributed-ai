@@ -26,6 +26,7 @@ public class CallForProposals extends OneShotBehaviour implements Serializable {
     @Override
     public void action() {
         //Finish the auction or not
+        System.out.println("CFP");
 
         msgCounter = 0;
         exitCondition = 1;
